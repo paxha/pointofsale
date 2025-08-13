@@ -2,22 +2,14 @@
 
 namespace App\Models;
 
+use App\Observers\RoleObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Models\Role as SpatieRole;
 
+#[ObservedBy(RoleObserver::class)]
 class Role extends SpatieRole
 {
-    public static function boot(): void
-    {
-        parent::boot();
-
-        self::creating(function (Role $role) {
-            $teamId = filament()->getTenant()->getKey();
-
-            $role->team_id = $teamId;
-        });
-    }
-
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class, 'team_id');

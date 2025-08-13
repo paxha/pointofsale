@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StoreStatus;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Database\Factories\StoreFactory;
 use Filament\Models\Contracts\HasCurrentTenantLabel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,4 +38,11 @@ class Store extends Model implements HasCurrentTenantLabel
     {
         return 'Active Store';
     }
+
+    /** @return HasMany<\App\Models\Category, self> */
+    public function categories(): HasMany
+    {
+        return $this->hasMany(\App\Models\Category::class);
+    }
+
 }
