@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\StoreStatus;
 use App\Enums\UserStatus;
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
@@ -49,5 +50,7 @@ class DatabaseSeeder extends Seeder
         Category::factory()->count(100)->create();
 
         Product::factory()->count(1000)->create();
+
+        Customer::factory()->count(1000)->create();
     }
 }
