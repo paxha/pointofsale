@@ -32,8 +32,8 @@ class Category extends Model
         return $this->belongsTo(Store::class);
     }
 
-//    public function products(): HasMany
-//    {
-//        return $this->hasMany(Product::class);
-//    }
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
 }
