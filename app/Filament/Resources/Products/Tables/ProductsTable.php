@@ -12,7 +12,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ImportAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Actions\HeaderActionsPosition;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -64,7 +64,10 @@ class ProductsTable
             ])
             ->headerActions([
                 ImportAction::make()
-                    ->importer(ProductImporter::class),
+                    ->importer(ProductImporter::class)
+                    ->options([
+                        'store_id' => Filament::getTenant()?->getKey(),
+                    ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

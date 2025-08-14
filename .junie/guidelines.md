@@ -1,4 +1,46 @@
 <laravel-boost-guidelines>
+=== foundation rules ===
+
+# Laravel Boost Guidelines
+
+The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to enhance the user's satisfaction building Laravel applications.
+
+## Foundational Context
+This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
+
+- php - 8.4.11
+- filament/filament (FILAMENT) - v4
+- laravel/framework (LARAVEL) - v12
+- laravel/prompts (PROMPTS) - v0
+- livewire/livewire (LIVEWIRE) - v3
+- rector/rector (RECTOR) - v2
+- laravel/pint (PINT) - v1
+- pestphp/pest (PEST) - v3
+- tailwindcss (TAILWINDCSS) - v4
+
+
+## Conventions
+- You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
+- Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
+- Check for existing components to reuse before writing a new one.
+
+## Verification Scripts
+- Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
+
+## Application Structure & Architecture
+- Stick to existing directory structure - don't create new base folders without approval.
+- Do not change the application's dependencies without approval.
+
+## Frontend Bundling
+- If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+
+## Replies
+- Be concise in your explanations - focus on what's important rather than explaining obvious details.
+
+## Documentation Files
+- You must only create documentation files if explicitly requested by the user.
+
+
 === boost rules ===
 
 ## Laravel Boost
@@ -24,6 +66,7 @@
 - You must use this tool to search for Laravel-ecosystem documentation before falling back to other approaches.
 - Search the documentation before making code changes to ensure we are taking the correct approach.
 - Use multiple, broad, simple, topic based queries to start. For example: `['rate limiting', 'routing rate limiting', 'routing']`.
+- Do not add package names to queries, package information is already shared. Use `test resource table`, not `filament 4 test resource table`.
 
 ### Available Search Syntax
 - You can and should pass multiple queries at once. The most relevant results will be returned first.
@@ -41,6 +84,7 @@
 - Filament is used by this application, check how and where to follow existing application conventions.
 - Filament is a Server-Driven UI (SDUI) framework for Laravel. It allows developers to define user interfaces in PHP using structured configuration objects. It is built on top of Livewire, Alpine.js, and Tailwind CSS.
 - You can use the `search-docs` tool to get information from the official Filament documentation when needed. This is very useful for Artisan command arguments, specific code examples, testing functionality, relationship management, and ensuring you're following idiomatic practices.
+- Utilize static `make()` methods for consistent component initialization.
 
 ### Artisan
 - You must use the Filament specific Artisan commands to create new files or components for Filament. You can find these with the `list-artisan-commands` tool, or with `php artisan` and the `--help` option.
@@ -68,7 +112,7 @@ Forms\Components\Select::make('user_id')
 </code-snippet>
 
 
-### Testing
+## Testing
 - It's important to test Filament functionality for user satisfaction.
 - Ensure that you are authenticated to access the application within the test.
 - Filament uses Livewire, so start assertions with `livewire()` or `Livewire::test()`.
@@ -130,6 +174,12 @@ Forms\Components\Select::make('user_id')
 - The `Form` & `Infolist` layout components have been moved to `Filament\Schemas\Components`, for example `Grid`, `Section`, `Fieldset`, `Tabs`, `Wizard`, etc.
 - A new `Repeater` component for Forms has been added.
 - Icons now use the `Filament\Support\Icons\Heroicon` Enum by default. Other options are available and documented.
+
+### Organize Component Classes Structure
+- Schema components: `Schemas/Components/`
+- Table columns: `Tables/Columns/`
+- Table filters: `Tables/Filters/`
+- Actions: `Actions/`
 
 
 === laravel/core rules ===
