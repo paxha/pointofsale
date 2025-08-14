@@ -9,6 +9,7 @@ use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Customers\Tables\CustomersTable;
 use App\Models\Customer;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 
-class CustomerResource extends Resource
+class CustomerResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Customer::class;
 
@@ -61,5 +62,21 @@ class CustomerResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'restore',
+            'restore_any',
+            'delete',
+            'delete_any',
+            'force_delete',
+            'force_delete_any',
+        ];
     }
 }

@@ -23,7 +23,6 @@ class Product extends Model
         'price',
         'sale_price',
         'tax_percentage',
-        'tax_amount',
         'cost_price',
         'stock',
         'status',

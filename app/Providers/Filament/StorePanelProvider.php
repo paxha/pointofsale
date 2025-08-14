@@ -63,6 +63,7 @@ class StorePanelProvider extends PanelProvider
             ], isPersistent: true)
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->databaseNotifications();
     }
 }

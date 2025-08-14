@@ -24,7 +24,7 @@ return new class extends Migration {
             $table->integer('price')->nullable();
             $table->integer('sale_price')->nullable();
             $table->integer('tax_percentage')->nullable();
-            $table->integer('tax_amount')->nullable();
+            $table->integer('tax_amount')->virtualAs('tax_percentage * price / 100');
             $table->integer('cost_price')->nullable()->comment('Supplier\'s price.');
             $table->integer('stock')->default(0);
             $table->string('status')->default(ProductStatus::default());

@@ -40,27 +40,27 @@ class ProductForm
                                             ->helperText('Customers will see this price.')
                                             ->required()
                                             ->columnSpan(2)
-                                            ->live(onBlur: true)
+                                            ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, $set, $get) {
                                                 $taxPercentage = $get('tax_percentage');
-                                                $taxAmount = number_format(($state / 100) * $taxPercentage, 2);
+                                                $taxAmount = round(($state / 100) * $taxPercentage, 2);
                                                 $set('tax_amount', $taxAmount);
                                             }),
                                         TextInput::make('tax_percentage')
                                             ->integer()
                                             ->prefix('%')
                                             ->columnSpan(1)
-                                            ->live(onBlur: true)
+                                            ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, $set, $get) {
                                                 $price = $get('price');
                                                 $taxPercentage = $state;
-                                                $taxAmount = number_format(($price / 100) * $taxPercentage, 2);
+                                                $taxAmount = round(($price / 100) * $taxPercentage, 2);
                                                 $set('tax_amount', $taxAmount);
                                             }),
                                         TextInput::make('tax_amount')
                                             ->prefix('PKR')
                                             ->columnSpan(1)
-                                            ->readOnly(),
+                                            ->disabled(),
                                         TextInput::make('sale_price')
                                             ->prefix('PKR')
                                             ->helperText('Customers will see this price if you set a sale price.')

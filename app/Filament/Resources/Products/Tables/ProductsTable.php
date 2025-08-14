@@ -2,14 +2,17 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use App\Filament\Imports\ProductImporter;
 use App\Filament\Resources\Categories\RelationManagers\ProductsRelationManager;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ImportAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Actions\HeaderActionsPosition;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -58,6 +61,10 @@ class ProductsTable
                     ->hiddenLabel(),
                 DeleteAction::make()
                     ->hiddenLabel(),
+            ])
+            ->headerActions([
+                ImportAction::make()
+                    ->importer(ProductImporter::class),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

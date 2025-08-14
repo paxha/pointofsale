@@ -26,7 +26,6 @@ class ProductFactory extends Factory
         $price = fake()->numberBetween(100, 1000);
 
         $taxPercentage = fake()->numberBetween(1, 10);
-        $taxAmount = number_format(($price / 100) * $taxPercentage, 2);
 
         return [
             'store_id' => $storeId,
@@ -37,7 +36,6 @@ class ProductFactory extends Factory
             'barcode' => fake()->unique()->bothify('##########'),
             'price' => $price,
             'tax_percentage' => $taxPercentage,
-            'tax_amount' => $taxAmount,
             'cost_price' => fake()->numberBetween(1, $price),
             'stock' => fake()->numberBetween(0, 100),
             'status' => fake()->randomElement(ProductStatus::class),
