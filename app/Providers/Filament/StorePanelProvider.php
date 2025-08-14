@@ -64,6 +64,8 @@ class StorePanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->databaseNotifications();
+            ->databaseNotifications()
+            ->sidebarCollapsibleOnDesktop()
+            ->spa();
     }
 }

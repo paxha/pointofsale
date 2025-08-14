@@ -2,14 +2,18 @@
 
 namespace App\Filament\Resources\Sales\Tables;
 
+use App\Enums\SaleStatus;
 use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\Summarizers\Count;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class SalesTable
 {
@@ -35,8 +39,31 @@ class SalesTable
                 TextColumn::make('total')
                     ->label('Amount')
                     ->money('PKR'),
+                TextColumn::make('tax')
+                    ->label('Tax')
+                    ->money('PKR'),
                 TextColumn::make('status')
                     ->badge(),
+                TextColumn::make('total')
+                    ->summarize([
+                        Sum::make()
+                            ->query(fn(QueryBuilder $query) => $query->where('status', SaleStatus::Completed))
+                            ->money('PKR', 100)
+                            ->label('Total Sales'),
+                    ]),
+                TextColumn::make('tax')
+                    ->summarize([
+                        Sum::make()
+                            ->query(fn(QueryBuilder $query) => $query->where('status', SaleStatus::Completed))
+                            ->money('PKR', 100)
+                            ->label('Total Tax'),
+                    ]),
+                TextColumn::make('status')
+                    ->summarize(
+                        Count::make()
+                            ->query(fn(QueryBuilder $query) => $query->where('status', SaleStatus::Completed))
+                            ->label('No. of Sales')
+                    ),
             ])
             ->defaultSort('id', 'desc')
             ->filters([
