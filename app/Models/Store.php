@@ -59,4 +59,11 @@ class Store extends Model implements HasCurrentTenantLabel
         return $this->hasMany(\App\Models\Sale::class);
     }
 
+
+    /** @return HasMany<\App\Models\Customer, self> */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(\App\Models\Customer::class);
+    }
+
 }

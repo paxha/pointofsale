@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Sales\Schemas;
 
 use App\Enums\SalePaymentMethod;
+use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Sales\SaleResource;
-use App\Filament\Store\Resources\Users\Schemas\UserForm;
 use App\Models\Product;
 use App\Models\Sale;
 use Filament\Actions\Action;
@@ -144,6 +144,7 @@ class SaleForm
                                             ->relationship('customer', 'name')
                                             ->searchable(['name', 'phone'])
                                             ->getOptionLabelFromRecordUsing(fn(Model $record) => "$record->name - $record->phone")
+                                            ->createOptionForm(fn(Schema $schema) => CustomerForm::configure($schema))
                                             ->createOptionModalHeading('New Customer')
                                     ])
                                     ->columnSpanFull(),

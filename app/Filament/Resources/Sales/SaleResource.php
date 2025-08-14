@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Sales;
 
 use App\Filament\Resources\Sales\Pages\CreateSale;
-use App\Filament\Resources\Sales\Pages\EditSale;
 use App\Filament\Resources\Sales\Pages\ListSales;
 use App\Filament\Resources\Sales\Pages\ViewSale;
 use App\Filament\Resources\Sales\Schemas\SaleForm;
@@ -25,7 +24,12 @@ class SaleResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Sale';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Point of Sale';
+    protected static string|UnitEnum|null $navigationGroup = 'Point of Sale';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return self::$model::query()->whereDate('created_at', today())->count();
+    }
 
     public static function form(Schema $schema): Schema
     {

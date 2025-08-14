@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Sale extends Model
 {
     protected $fillable = [
-        'user_id', // Customer
+        'customer_id',
         'subtotal',
         'discount',
         'tax',
