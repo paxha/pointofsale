@@ -19,6 +19,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class SaleForm
 {
@@ -39,7 +41,7 @@ class SaleForm
                                         ->live()
                                         ->afterStateUpdated(function ($state, $set, $get) {
                                             $product = Product::whereSku($state)->first();
-                                            if (!$product) {
+                                            if (! $product) {
                                                 Notification::make()
                                                     ->title('Product not found')
                                                     ->danger()
@@ -47,6 +49,7 @@ class SaleForm
                                                     ->send();
 
                                                 $set('search', '');
+
                                                 return;
                                             }
 
@@ -69,18 +72,19 @@ class SaleForm
                                                 ->all();
                                         })
                                         ->afterStateUpdated(function ($state, $set, $get) {
-                                            if (!$state) {
+                                            if (! $state) {
                                                 return;
                                             }
 
                                             $product = Product::find($state);
-                                            if (!$product) {
+                                            if (! $product) {
                                                 Notification::make()
                                                     ->title('Product not found')
                                                     ->danger()
                                                     ->duration(1000)
                                                     ->send();
                                                 $set('product_picker', null);
+
                                                 return;
                                             }
 
@@ -143,9 +147,9 @@ class SaleForm
                                         Select::make('customer_id')
                                             ->relationship('customer', 'name')
                                             ->searchable(['name', 'phone'])
-                                            ->getOptionLabelFromRecordUsing(fn(Model $record) => "$record->name - $record->phone")
-                                            ->createOptionForm(fn(Schema $schema) => CustomerForm::configure($schema))
-                                            ->createOptionModalHeading('New Customer')
+                                            ->getOptionLabelFromRecordUsing(fn (Model $record) => "$record->name - $record->phone")
+                                            ->createOptionForm(fn (Schema $schema) => CustomerForm::configure($schema))
+                                            ->createOptionModalHeading('New Customer'),
                                     ])
                                     ->columnSpanFull(),
                                 Section::make()
@@ -164,7 +168,7 @@ class SaleForm
                                             ->live(debounce: 1000)
                                             ->inlineLabel()
                                             ->afterStateUpdated(function ($state, $set, $get) {
-                                                $discount = min(100, max(0, (float)$state));
+                                                $discount = min(100, max(0, (float) $state));
                                                 $set('discount', $discount);
                                                 // Recalculate totals applying global discount
                                                 SaleForm::recalcSummary($get, $set);
@@ -198,7 +202,7 @@ class SaleForm
                                             ->numeric()
                                             ->prefix('PKR')
                                             ->live(debounce: 1000)
-                                            ->visible(fn($get) => $get('payment_method') === SalePaymentMethod::Cash)
+                                            ->visible(fn ($get) => $get('payment_method') === SalePaymentMethod::Cash)
                                             ->afterStateUpdated(function ($state, $set, $get) {
                                                 $given = $state;
                                                 $total = $get('total');
@@ -210,20 +214,25 @@ class SaleForm
                                             ->inlineLabel()
                                             ->prefix('PKR')
                                             ->disabled()
-                                            ->visible(fn($get) => $get('payment_method') === SalePaymentMethod::Cash),
+                                            ->visible(fn ($get) => $get('payment_method') === SalePaymentMethod::Cash),
                                         TextInput::make('reference')
                                             ->label('Reference')
                                             ->prefix('#')
                                             ->inlineLabel()
-                                            ->visible(fn($get) => $get('payment_method') !== SalePaymentMethod::Cash),
+                                            ->visible(fn ($get) => $get('payment_method') !== SalePaymentMethod::Cash),
                                     ])
                                     ->columnSpanFull(),
                                 Flex::make([
                                     Action::make('checkout')
                                         ->color('info')
                                         ->action(function ($state) {
-                                            $products = $state['products'];
+                                            $products = $state['products'] ?? [];
+                                            $customerId = $state['customer_id'] ?? null;
+                                            $subtotal = $state['subtotal'] ?? null;
+                                            $total = $state['total'] ?? null;
+                                            $paymentMethod = $state['payment_method'] ?? null;
 
+                                            // Validation
                                             if (empty($products)) {
                                                 Notification::make()
                                                     ->title('Please add products to the cart.')
@@ -232,26 +241,46 @@ class SaleForm
 
                                                 return redirect()->to(SaleResource::getUrl('create'));
                                             }
+                                            if (! $subtotal || ! $total || ! $paymentMethod) {
+                                                Notification::make()
+                                                    ->title('Missing required sale information.')
+                                                    ->danger()
+                                                    ->send();
 
-                                            $sale = Sale::create([
-                                                'customer_id' => $state['customer_id'],
-                                                'subtotal' => $state['subtotal'],
-                                                'discount' => $state['discount'],
-                                                'tax' => $state['total_tax'],
-                                                'total' => $state['total'],
-                                                'payment_method' => $state['payment_method'],
-                                            ]);
+                                                return redirect()->to(SaleResource::getUrl('create'));
+                                            }
 
-                                            foreach ($products as $product) {
-                                                $sale->products()->attach([
-                                                    'product_id' => $product['product_id'],
-                                                ], [
-                                                    'unit_price' => $product['unit_price'],
-                                                    'quantity' => $product['quantity'],
-                                                    'price' => $product['price'],
-                                                    'tax' => $product['tax'],
-                                                    'discount' => $product['discount'],
-                                                ]);
+                                            try {
+                                                $sale = DB::transaction(function () use ($state, $products) {
+                                                    $sale = Sale::create([
+                                                        'customer_id' => $state['customer_id'],
+                                                        'subtotal' => $state['subtotal'],
+                                                        'discount' => $state['discount'],
+                                                        'tax' => $state['total_tax'],
+                                                        'total' => $state['total'],
+                                                        'payment_method' => $state['payment_method'],
+                                                    ]);
+                                                    foreach ($products as $product) {
+                                                        $sale->products()->attach([
+                                                            'product_id' => $product['product_id'],
+                                                        ], [
+                                                            'unit_price' => $product['unit_price'],
+                                                            'quantity' => $product['quantity'],
+                                                            'price' => $product['price'],
+                                                            'tax' => $product['tax'],
+                                                            'discount' => $product['discount'],
+                                                        ]);
+                                                    }
+
+                                                    return $sale;
+                                                });
+                                            } catch (Throwable $e) {
+                                                Notification::make()
+                                                    ->title('Failed to create sale: '.$e->getMessage())
+                                                    ->danger()
+                                                    ->send();
+
+                                                return redirect()->to(SaleResource::getUrl('create'));
                                             }
 
                                             Notification::make()
@@ -270,10 +299,10 @@ class SaleForm
                                             return redirect()->to(SaleResource::getUrl('create'));
                                         }),
                                 ]),
-                            ])
+                            ]),
                     ])
                     ->columns(3)
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -283,15 +312,14 @@ class SaleForm
     private static function recalcSummary(
         callable $get,
         callable $set,
-        string   $productsPath = 'products',
-        string   $subtotalPath = 'subtotal',
-        string   $totalPath = 'total',
-        string   $totalTaxPath = 'total_tax',
-        string   $discountPath = 'discount',
-        string   $givenCashPath = 'given_cash',
-        string   $changePath = 'change'
-    ): void
-    {
+        string $productsPath = 'products',
+        string $subtotalPath = 'subtotal',
+        string $totalPath = 'total',
+        string $totalTaxPath = 'total_tax',
+        string $discountPath = 'discount',
+        string $givenCashPath = 'given_cash',
+        string $changePath = 'change'
+    ): void {
         $products = $get($productsPath);
 
         $subtotal = array_sum(array_map(static function ($item) {
@@ -322,17 +350,16 @@ class SaleForm
     private static function recalcLine(
         callable $get,
         callable $set,
-        string   $productsPath = '../../products',
-        string   $subtotalPath = '../../subtotal',
-        string   $totalPath = '../../total',
-        string   $totalTaxPath = '../../total_tax',
-        string   $discountPath = '../../discount',
-        string   $givenCashPath = '../../given_cash',
-        string   $changePath = '../../change'
-    ): void
-    {
-        $quantity = max(1, (int)($get('quantity') ?: 1));
-        $discount = min(100, max(0, (int)($get('discount') ?? 0)));
+        string $productsPath = '../../products',
+        string $subtotalPath = '../../subtotal',
+        string $totalPath = '../../total',
+        string $totalTaxPath = '../../total_tax',
+        string $discountPath = '../../discount',
+        string $givenCashPath = '../../given_cash',
+        string $changePath = '../../change'
+    ): void {
+        $quantity = max(1, (int) ($get('quantity') ?: 1));
+        $discount = min(100, max(0, (int) ($get('discount') ?? 0)));
 
         $set('quantity', $quantity);
         $set('discount', $discount);
@@ -369,7 +396,7 @@ class SaleForm
         }
         unset($item);
 
-        if (!$found) {
+        if (! $found) {
             array_unshift($products, [
                 'product_id' => $product->id,
                 'name' => $product->name,
