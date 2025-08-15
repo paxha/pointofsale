@@ -22,7 +22,7 @@ class SaleFactory extends Factory
         $hasCustomer = $this->faker->boolean(80); // 80% sales have a customer
         $today = Carbon::today();
         $createdAt = $this->faker->dateTimeBetween('-3 months', 'now');
-        $isToday = $this->faker->boolean(10); // ~10% of sales are today
+        $isToday = $this->faker->boolean(1); // ~10% of sales are today
         if ($isToday) {
             $createdAt = $this->faker->dateTimeBetween($today, 'now');
         }

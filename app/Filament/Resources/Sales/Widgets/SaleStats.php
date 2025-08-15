@@ -74,18 +74,18 @@ class SaleStats extends BaseWidget
         $perDayCountColor = $perDayCountChange === null ? null : ($perDayCountChange >= 0 ? 'success' : 'danger');
 
         return [
-            Stat::make("Today's Sale", round($todayTotal/100, 2) . ' PKR')
+            Stat::make("Today's Sale", number_format(round($todayTotal/100)) . ' PKR')
                 ->description(($todayChange === null ? 'No data' : (abs(round($todayChange, 2)) . '% ' . ($todayChange >= 0 ? 'increase' : 'decrease'))) . " | $todayCount sales")
                 ->descriptionIcon($todayIcon, IconPosition::Before)
                 ->color($todayColor)
                 ->chart($todayChart),
-            Stat::make('Monthly Sale', round($monthTotal/100, 2) . ' PKR')
+            Stat::make('Monthly Sale', number_format(round($monthTotal/100)) . ' PKR')
                 ->description(($monthChange === null ? 'No data' : (abs(round($monthChange, 2)) . '% ' . ($monthChange >= 0 ? 'increase' : 'decrease'))) . " | $monthCount sales")
                 ->descriptionIcon($monthIcon, IconPosition::Before)
                 ->color($monthColor)
                 ->chart($monthChart),
-            Stat::make('Per Day Average', round($perDayAverage/100, 2) . ' PKR')
-                ->description(($avgChange === null ? 'No data' : (abs(round($avgChange, 2)) . '% ' . ($avgChange >= 0 ? 'increase' : 'decrease'))) . " | " . round($perDayCount, 1) . ' sales/day')
+            Stat::make('Per Day Average', number_format(round($perDayAverage/100)) . ' PKR')
+                ->description(($avgChange === null ? 'No data' : (abs(round($avgChange, 2)) . '% ' . ($avgChange >= 0 ? 'increase' : 'decrease'))) . " | " . round($perDayCount) . ' sales/day')
                 ->descriptionIcon($avgIcon, IconPosition::Before)
                 ->color($avgColor)
                 ->chart($avgChart),
