@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Store;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -82,5 +83,7 @@ class DatabaseSeeder extends Seeder
                     $sale->products()->attach($pivotData);
                 });
         }
+
+        Supplier::factory()->count(100)->create();
     }
 }

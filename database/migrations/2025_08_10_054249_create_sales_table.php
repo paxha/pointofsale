@@ -33,6 +33,7 @@ return new class extends Migration {
             $table->foreignIdFor(Sale::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Product::class)->nullable()->constrained()->nullOnDelete();
             $table->integer('unit_price');
+            $table->integer('cost_price')->nullable();
             $table->integer('quantity')->default(1);
             $table->integer('tax')->nullable();
             $table->integer('price');
