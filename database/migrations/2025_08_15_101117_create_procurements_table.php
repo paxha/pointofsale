@@ -1,13 +1,16 @@
 <?php
 
+use App\Enums\ProcurementStatus;
 use App\Models\Procurement;
 use App\Models\Product;
 use App\Models\Store;
+use App\Models\Supplier;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -16,7 +19,8 @@ return new class extends Migration {
         Schema::create('procurements', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
-            $table->string('name');
+            $table->foreignIdFor(Supplier::class)->constrained()->cascadeOnDelete();
+            $table->string('reference');
             $table->integer('total_requested_quantity')->nullable();
             $table->integer('total_received_quantity')->nullable();
             $table->integer('total_requested_unit_price')->nullable();
@@ -25,11 +29,13 @@ return new class extends Migration {
             $table->integer('total_received_tax_amount')->nullable();
             $table->integer('total_requested_cost_price')->nullable();
             $table->integer('total_received_cost_price')->nullable();
+            $table->string('status')->default(ProcurementStatus::default());
             $table->softDeletes();
             $table->timestamps();
         });
 
         Schema::create('procurement_product', function (Blueprint $table) {
+            $table->id();
             $table->foreignIdFor(Procurement::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Product::class)->nullable()->constrained()->nullOnDelete();
 

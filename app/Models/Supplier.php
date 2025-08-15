@@ -6,6 +6,7 @@ use App\Enums\SupplierStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Supplier extends Model
@@ -18,7 +19,7 @@ class Supplier extends Model
         'phone',
         'email',
         'address',
-        'status'
+        'status',
     ];
 
     protected $casts = [
@@ -28,5 +29,10 @@ class Supplier extends Model
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function procurements(): HasMany
+    {
+        return $this->hasMany(Procurement::class);
     }
 }

@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateProcurement extends CreateRecord
 {
     protected static string $resource = ProcurementResource::class;
+
+    protected function afterCreate(): void
+    {
+        $this->record->recalculateTotals();
+    }
 }
