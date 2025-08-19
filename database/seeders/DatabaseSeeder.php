@@ -62,7 +62,7 @@ class DatabaseSeeder extends Seeder
             Sale::factory()
                 ->count(200)
                 ->create(['store_id' => $store->id])
-                ->each(function ($sale) use ($products, $customers) {
+                ->each(function ($sale) use ($products) {
                     $productCount = rand(1, 5);
                     $selectedProducts = $products->random($productCount);
                     $pivotData = [];

@@ -30,7 +30,7 @@ class ProductInfolist
                                         ->money('PKR', decimalPlaces: 0),
                                     TextEntry::make('cost_price')
                                         ->money('PKR', decimalPlaces: 0)
-                                        ->helperText('Customers won\'t see this price.')
+                                        ->helperText('Customers won\'t see this price.'),
                                 ])
                                 ->columns()
                                 ->columnSpanFull(),

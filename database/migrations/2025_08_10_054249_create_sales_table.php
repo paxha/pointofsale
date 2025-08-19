@@ -10,7 +10,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -19,7 +20,7 @@ return new class extends Migration {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Customer::class)->nullable()->constrained()->nullOnDelete();;
+            $table->foreignIdFor(Customer::class)->nullable()->constrained()->nullOnDelete();
             $table->integer('subtotal')->nullable();
             $table->integer('discount')->nullable()->comment('Discount in percent');
             $table->integer('tax')->nullable();

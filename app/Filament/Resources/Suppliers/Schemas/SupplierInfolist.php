@@ -17,7 +17,7 @@ class SupplierInfolist
                     ->label('Email address'),
                 TextEntry::make('address'),
                 TextEntry::make('status')
-                ->badge(),
+                    ->badge(),
                 TextEntry::make('deleted_at')
                     ->dateTime(),
                 TextEntry::make('created_at')

@@ -22,7 +22,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements FilamentUser, HasTenants
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -61,7 +61,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         ];
     }
 
-    function stores(): BelongsToMany
+    public function stores(): BelongsToMany
     {
         return $this->belongsToMany(Store::class);
     }

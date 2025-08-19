@@ -12,8 +12,6 @@ use Illuminate\Support\Str;
 
 class RegisterStore extends RegisterTenant
 {
-
-
     public static function getLabel(): string
     {
         return 'Create store';
