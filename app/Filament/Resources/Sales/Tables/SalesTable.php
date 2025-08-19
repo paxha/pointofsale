@@ -7,6 +7,7 @@ use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\Summarizers\Count;
 use Filament\Tables\Columns\Summarizers\Sum;
@@ -79,6 +80,7 @@ class SalesTable
                         'next' => SaleResource::getUrl(), // return to sales list after printing
                     ])),
                 ViewAction::make(),
+                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
