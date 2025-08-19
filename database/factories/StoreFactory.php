@@ -20,7 +20,10 @@ class StoreFactory extends Factory
         return [
             'name' => fake()->company(),
             'slug' => fake()->unique()->domainWord(),
-            'status' => fake()->randomElement(StoreStatus::class),
+            'email' => fake()->companyEmail(),
+            'phone' => fake()->phoneNumber(),
+            'address' => fake()->address(),
+            'status' => fake()->randomElement(StoreStatus::cases())->value,
         ];
     }
 }

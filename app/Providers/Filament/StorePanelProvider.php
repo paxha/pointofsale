@@ -2,9 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\EditStoreProfile;
 use App\Models\Store;
-use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -30,6 +31,7 @@ class StorePanelProvider extends PanelProvider
             ->default()
             ->id('store')
             ->tenant(Store::class, slugAttribute: 'slug')
+            ->tenantProfile(EditStoreProfile::class)
             ->login()
             ->colors([
                 'primary' => Color::Blue,
