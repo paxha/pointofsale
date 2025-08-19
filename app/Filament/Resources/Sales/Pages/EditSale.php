@@ -72,7 +72,8 @@ class EditSale extends EditRecord
                 'discount' => $data['discount'] ?? 0,
                 'tax' => $data['total_tax'] ?? 0,
                 'total' => $data['total'] ?? 0,
-                'payment_method' => $data['payment_method'] ?? $record->payment_method,
+                'payment_status' => $data['payment_status'] ?? $record->payment_status,
+                'status' => $data['status'] ?? $record->status,
             ]);
 
             // Sync products pivot

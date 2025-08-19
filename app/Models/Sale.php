@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\PriceCast;
+use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,7 @@ class Sale extends Model
         'discount',
         'tax',
         'total',
-        'payment_method',
+        'payment_status',
         'status',
     ];
 
@@ -29,6 +30,7 @@ class Sale extends Model
             'subtotal' => PriceCast::class,
             'tax' => PriceCast::class,
             'total' => PriceCast::class,
+            'payment_status' => SalePaymentStatus::class,
             'status' => SaleStatus::class,
         ];
     }

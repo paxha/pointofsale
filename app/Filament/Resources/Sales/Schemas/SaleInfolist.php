@@ -40,7 +40,7 @@ class SaleInfolist
                                 Section::make('Order Information')
                                     ->components([
                                         TextEntry::make('id')->label('Reference')->prefix('#'),
-                                        TextEntry::make('payment_method')->label('Method'),
+                                        TextEntry::make('payment_status')->label('Payment')->badge(),
                                         TextEntry::make('status')->label('Status')->badge(),
                                         TextEntry::make('created_at')->label('Date')->dateTime(),
                                     ])

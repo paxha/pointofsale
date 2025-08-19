@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\SalePaymentMethod;
+use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\Sale;
@@ -40,7 +40,7 @@ class SaleFactory extends Factory
             'discount' => $discount,
             'tax' => $tax,
             'total' => $total,
-            'payment_method' => Arr::random(SalePaymentMethod::cases()),
+            'payment_status' => Arr::random(SalePaymentStatus::cases()),
             'status' => Arr::random(SaleStatus::cases()),
             'created_at' => $createdAt,
             'updated_at' => $createdAt,

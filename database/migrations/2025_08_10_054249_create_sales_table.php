@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\SalePaymentMethod;
+use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\Product;
@@ -10,8 +10,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -25,8 +24,9 @@ return new class extends Migration
             $table->integer('discount')->nullable()->comment('Discount in percent');
             $table->integer('tax')->nullable();
             $table->integer('total')->nullable();
-            $table->string('payment_method')->default(SalePaymentMethod::default());
             $table->string('status')->default(SaleStatus::Completed);
+            $table->string('payment_status')->default(SalePaymentStatus::default());
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
 
