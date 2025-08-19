@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -20,12 +21,16 @@ class CategoriesTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                //                TextColumn::make('products_count')
-                //                    ->label('Products')
-                //                    ->counts('products')
-                //                    ->sortable(),
+                TextColumn::make('products_count')
+                    ->label('Products')
+                    ->counts('products')
+                    ->sortable(),
                 TextColumn::make('status')
                     ->badge(),
+                TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -40,8 +45,12 @@ class CategoriesTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                EditAction::make(),
-                ReplicateAction::make(),
+                ViewAction::make()
+                    ->hiddenLabel(),
+                EditAction::make()
+                    ->hiddenLabel(),
+                ReplicateAction::make()
+                    ->hiddenLabel(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
