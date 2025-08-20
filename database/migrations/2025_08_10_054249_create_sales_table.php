@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\SalePaymentMethod;
+use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\Product;
@@ -19,13 +19,14 @@ return new class extends Migration {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Customer::class)->nullable()->constrained()->nullOnDelete();;
+            $table->foreignIdFor(Customer::class)->nullable()->constrained()->nullOnDelete();
             $table->integer('subtotal')->nullable();
             $table->integer('discount')->nullable()->comment('Discount in percent');
             $table->integer('tax')->nullable();
             $table->integer('total')->nullable();
-            $table->string('payment_method')->default(SalePaymentMethod::default());
             $table->string('status')->default(SaleStatus::Completed);
+            $table->string('payment_status')->default(SalePaymentStatus::default());
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
 

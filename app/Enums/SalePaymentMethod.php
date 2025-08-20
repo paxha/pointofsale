@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Contracts\Support\Htmlable;
 
-enum SalePaymentMethod: string implements HasLabel, HasColor
+enum SalePaymentMethod: string implements HasColor, HasLabel
 {
     case Cash = 'cash';
     case CreditCard = 'credit_card';

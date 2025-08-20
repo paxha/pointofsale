@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\Sales\Widgets;
 
 use App\Models\Sale;
+use Filament\Support\Enums\IconPosition;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
 use Illuminate\Support\Carbon;
-use Filament\Support\Enums\IconPosition;
 
 class SaleStats extends BaseWidget
 {
@@ -31,7 +31,7 @@ class SaleStats extends BaseWidget
             ->between($today->copy()->subDays(6), $now)
             ->perDay()
             ->sum('total')
-            ->map(fn(TrendValue $value) => $value->aggregate)
+            ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
         // Monthly sales
@@ -46,7 +46,7 @@ class SaleStats extends BaseWidget
             ->between($startOfMonth, $now)
             ->perDay()
             ->sum('total')
-            ->map(fn(TrendValue $value) => $value->aggregate)
+            ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
         // Per day average (this month)
@@ -74,18 +74,18 @@ class SaleStats extends BaseWidget
         $perDayCountColor = $perDayCountChange === null ? null : ($perDayCountChange >= 0 ? 'success' : 'danger');
 
         return [
-            Stat::make("Today's Sale", number_format(round($todayTotal/100)) . ' PKR')
-                ->description(($todayChange === null ? 'No data' : (abs(round($todayChange, 2)) . '% ' . ($todayChange >= 0 ? 'increase' : 'decrease'))) . " | $todayCount sales")
+            Stat::make("Today's Sale", number_format(round($todayTotal / 100)).' PKR')
+                ->description(($todayChange === null ? 'No data' : (abs(round($todayChange, 2)).'% '.($todayChange >= 0 ? 'increase' : 'decrease')))." | $todayCount sales")
                 ->descriptionIcon($todayIcon, IconPosition::Before)
                 ->color($todayColor)
                 ->chart($todayChart),
-            Stat::make('Monthly Sale', number_format(round($monthTotal/100)) . ' PKR')
-                ->description(($monthChange === null ? 'No data' : (abs(round($monthChange, 2)) . '% ' . ($monthChange >= 0 ? 'increase' : 'decrease'))) . " | $monthCount sales")
+            Stat::make('Monthly Sale', number_format(round($monthTotal / 100)).' PKR')
+                ->description(($monthChange === null ? 'No data' : (abs(round($monthChange, 2)).'% '.($monthChange >= 0 ? 'increase' : 'decrease')))." | $monthCount sales")
                 ->descriptionIcon($monthIcon, IconPosition::Before)
                 ->color($monthColor)
                 ->chart($monthChart),
-            Stat::make('Per Day Average', number_format(round($perDayAverage/100)) . ' PKR')
-                ->description(($avgChange === null ? 'No data' : (abs(round($avgChange, 2)) . '% ' . ($avgChange >= 0 ? 'increase' : 'decrease'))) . " | " . round($perDayCount) . ' sales/day')
+            Stat::make('Per Day Average', number_format(round($perDayAverage / 100)).' PKR')
+                ->description(($avgChange === null ? 'No data' : (abs(round($avgChange, 2)).'% '.($avgChange >= 0 ? 'increase' : 'decrease'))).' | '.round($perDayCount).' sales/day')
                 ->descriptionIcon($avgIcon, IconPosition::Before)
                 ->color($avgColor)
                 ->chart($avgChart),

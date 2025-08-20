@@ -9,7 +9,7 @@ use Filament\Support\Contracts\HasLabel;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 
-enum SupplierStatus: string implements HasLabel, HasColor, HasIcon
+enum SupplierStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Active = 'active';
     case Inactive = 'inactive';

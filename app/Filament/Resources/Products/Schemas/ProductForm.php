@@ -104,7 +104,7 @@ class ProductForm
                                     ->schema([
                                         Select::make('category_id')
                                             ->relationship('category', 'name')
-                                            ->createOptionForm(fn(Schema $schema) => CategoryForm::configure($schema))
+                                            ->createOptionForm(fn (Schema $schema) => CategoryForm::configure($schema))
                                             ->searchable()
                                             ->preload(),
                                     ])

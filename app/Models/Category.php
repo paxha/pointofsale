@@ -17,7 +17,7 @@ class Category extends Model
     protected $fillable = [
         'name',
         'description',
-        'status'
+        'status',
     ];
 
     protected function casts(): array

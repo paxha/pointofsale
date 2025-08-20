@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Sales\Pages;
 
 use App\Filament\Resources\Sales\SaleResource;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Contracts\Support\Htmlable;
 

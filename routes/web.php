@@ -9,6 +9,7 @@ Route::get('/', function () {
 
 Route::get('/sales/{sale}/receipt', function (Sale $sale) {
     $next = request()->query('next', '/');
+
     return response()->view('print.receipt', [
         'sale' => $sale,
         'next' => $next,

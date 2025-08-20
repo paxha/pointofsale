@@ -27,7 +27,7 @@ class ProcurementResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Procurement';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Inventory';
+    protected static string|UnitEnum|null $navigationGroup = 'Inventory';
 
     protected static ?int $navigationSort = 3;
 

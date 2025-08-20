@@ -9,7 +9,7 @@ use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Contracts\Support\Htmlable;
 
-enum UserStatus: string implements HasLabel, HasColor, HasIcon, HasDescription
+enum UserStatus: string implements HasColor, HasDescription, HasIcon, HasLabel
 {
     case Active = 'active';
     case Blocked = 'blocked';

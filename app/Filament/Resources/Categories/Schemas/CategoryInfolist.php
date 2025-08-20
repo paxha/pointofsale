@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Resources\Products\Schemas;
+namespace App\Filament\Resources\Categories\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-class ProductInfolist
+class CategoryInfolist
 {
     public static function configure(Schema $schema): Schema
     {
@@ -24,27 +24,6 @@ class ProductInfolist
                                 ])
                                 ->columns()
                                 ->columnSpanFull(),
-                            Section::make('Pricing')
-                                ->schema([
-                                    TextEntry::make('price')
-                                        ->money('PKR', decimalPlaces: 0),
-                                    TextEntry::make('cost_price')
-                                        ->money('PKR', decimalPlaces: 0)
-                                        ->helperText('Customers won\'t see this price.'),
-                                ])
-                                ->columns()
-                                ->columnSpanFull(),
-                            Section::make('Inventory')
-                                ->schema([
-                                    TextEntry::make('sku')
-                                        ->label('SKU (Stock Keeping Unit)'),
-                                    TextEntry::make('barcode')
-                                        ->label('Barcode (ISBN, UPC, GTIN, etc.)'),
-                                    TextEntry::make('stock')
-                                        ->label('Quantity'),
-                                ])
-                                ->columns()
-                                ->columnSpanFull(),
                         ])
                             ->columnSpan(2),
                         Grid::make()->schema([
@@ -52,12 +31,6 @@ class ProductInfolist
                                 ->schema([
                                     TextEntry::make('status')
                                         ->badge(),
-                                ])
-                                ->columnSpanFull(),
-                            Section::make('Associations')
-                                ->schema([
-                                    TextEntry::make('category.name')
-                                        ->label('Category'),
                                 ])
                                 ->columnSpanFull(),
                             Section::make('Extras')

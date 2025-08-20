@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Sales\Schemas;
 
-use App\Enums\SalePaymentMethod;
+use App\Enums\SalePaymentStatus;
+use App\Enums\SaleStatus;
 use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Sales\SaleResource;
 use App\Models\Product;
@@ -144,16 +145,6 @@ class SaleForm
                             ->schema([
                                 Section::make()
                                     ->schema([
-                                        Select::make('customer_id')
-                                            ->relationship('customer', 'name')
-                                            ->searchable(['name', 'phone'])
-                                            ->getOptionLabelFromRecordUsing(fn (Model $record) => "$record->name - $record->phone")
-                                            ->createOptionForm(fn (Schema $schema) => CustomerForm::configure($schema))
-                                            ->createOptionModalHeading('New Customer'),
-                                    ])
-                                    ->columnSpanFull(),
-                                Section::make()
-                                    ->schema([
                                         TextInput::make('subtotal')
                                             ->numeric()
                                             ->prefix('PKR')
@@ -189,37 +180,28 @@ class SaleForm
                                     ->columnSpanFull(),
                                 Section::make()
                                     ->schema([
-                                        Select::make('payment_method')
-                                            ->hiddenLabel()
-                                            ->options(SalePaymentMethod::class)
-                                            ->default(SalePaymentMethod::default())
+                                        Select::make('customer_id')
+                                            ->relationship('customer', 'name')
+                                            ->searchable(['name', 'phone'])
+                                            ->getOptionLabelFromRecordUsing(fn (Model $record) => "$record->name - $record->phone")
+                                            ->createOptionForm(fn (Schema $schema) => CustomerForm::configure($schema))
+                                            ->createOptionModalHeading('New Customer'),
+                                    ])
+                                    ->columnSpanFull(),
+                                Section::make()
+                                    ->schema([
+                                        Select::make('payment_status')
+                                            ->label('Payment Status')
+                                            ->options(SalePaymentStatus::class)
+                                            ->default(SalePaymentStatus::default())
                                             ->searchable()
-                                            ->preload()
-                                            ->live(),
-                                        TextInput::make('given_cash')
-                                            ->label('Given Cash')
-                                            ->inlineLabel()
-                                            ->numeric()
-                                            ->prefix('PKR')
-                                            ->live(debounce: 1000)
-                                            ->visible(fn ($get) => $get('payment_method') === SalePaymentMethod::Cash)
-                                            ->afterStateUpdated(function ($state, $set, $get) {
-                                                $given = $state;
-                                                $total = $get('total');
-                                                $set('change', round($given - $total, 2));
-                                            }),
-                                        TextInput::make('change')
-                                            ->numeric()
-                                            ->label('Change')
-                                            ->inlineLabel()
-                                            ->prefix('PKR')
-                                            ->disabled()
-                                            ->visible(fn ($get) => $get('payment_method') === SalePaymentMethod::Cash),
-                                        TextInput::make('reference')
-                                            ->label('Reference')
-                                            ->prefix('#')
-                                            ->inlineLabel()
-                                            ->visible(fn ($get) => $get('payment_method') !== SalePaymentMethod::Cash),
+                                            ->preload(),
+                                        Select::make('status')
+                                            ->label('Sale Status')
+                                            ->options(SaleStatus::class)
+                                            ->default(SaleStatus::default())
+                                            ->searchable()
+                                            ->preload(),
                                     ])
                                     ->columnSpanFull(),
                                 Flex::make([
@@ -227,10 +209,8 @@ class SaleForm
                                         ->color('info')
                                         ->action(function ($state) {
                                             $products = $state['products'] ?? [];
-                                            $customerId = $state['customer_id'] ?? null;
                                             $subtotal = $state['subtotal'] ?? null;
                                             $total = $state['total'] ?? null;
-                                            $paymentMethod = $state['payment_method'] ?? null;
 
                                             // Validation
                                             if (empty($products)) {
@@ -241,7 +221,7 @@ class SaleForm
 
                                                 return redirect()->to(SaleResource::getUrl('create'));
                                             }
-                                            if (! $subtotal || ! $total || ! $paymentMethod) {
+                                            if (! $subtotal || ! $total) {
                                                 Notification::make()
                                                     ->title('Missing required sale information.')
                                                     ->danger()
@@ -253,12 +233,13 @@ class SaleForm
                                             try {
                                                 $sale = DB::transaction(function () use ($state, $products) {
                                                     $sale = Sale::create([
-                                                        'customer_id' => $state['customer_id'],
-                                                        'subtotal' => $state['subtotal'],
-                                                        'discount' => $state['discount'],
-                                                        'tax' => $state['total_tax'],
-                                                        'total' => $state['total'],
-                                                        'payment_method' => $state['payment_method'],
+                                                        'customer_id' => $state['customer_id'] ?? null,
+                                                        'subtotal' => $state['subtotal'] ?? 0,
+                                                        'discount' => $state['discount'] ?? 0,
+                                                        'tax' => $state['total_tax'] ?? 0,
+                                                        'total' => $state['total'] ?? 0,
+                                                        'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
+                                                        'status' => $state['status'] ?? SaleStatus::default(),
                                                     ]);
                                                     foreach ($products as $product) {
                                                         $sale->products()->attach([
@@ -276,7 +257,7 @@ class SaleForm
                                                 });
                                             } catch (Throwable $e) {
                                                 Notification::make()
-                                                    ->title('Failed to create sale: '.$e->getMessage())
+                                                    ->title('Failed to create sale: ' . $e->getMessage())
                                                     ->danger()
                                                     ->send();
 
@@ -317,8 +298,6 @@ class SaleForm
         string $totalPath = 'total',
         string $totalTaxPath = 'total_tax',
         string $discountPath = 'discount',
-        string $givenCashPath = 'given_cash',
-        string $changePath = 'change'
     ): void {
         $products = $get($productsPath);
 
@@ -337,10 +316,6 @@ class SaleForm
 
         $set($totalPath, round($total, 2));
         $set($totalTaxPath, round($totalTax, 2));
-
-        // Keep change in sync whenever totals change
-        $given = $get($givenCashPath);
-        $set($changePath, round($given - $total, 2));
     }
 
     /**
@@ -355,8 +330,6 @@ class SaleForm
         string $totalPath = '../../total',
         string $totalTaxPath = '../../total_tax',
         string $discountPath = '../../discount',
-        string $givenCashPath = '../../given_cash',
-        string $changePath = '../../change'
     ): void {
         $quantity = max(1, (int) ($get('quantity') ?: 1));
         $discount = min(100, max(0, (int) ($get('discount') ?? 0)));
@@ -371,7 +344,7 @@ class SaleForm
         $set('price', round($lineTotal, 2));
         $set('tax', round($get('unit_tax') * $quantity, 2));
 
-        self::recalcSummary($get, $set, $productsPath, $subtotalPath, $totalPath, $totalTaxPath, $discountPath, $givenCashPath, $changePath);
+        self::recalcSummary($get, $set, $productsPath, $subtotalPath, $totalPath, $totalTaxPath, $discountPath);
     }
 
     /**
