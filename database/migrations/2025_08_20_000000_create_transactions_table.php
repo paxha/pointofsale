@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('store_id')->constrained()->cascadeOnDelete();
             $table->morphs('transactionable');
+            $table->nullableMorphs('referenceable');
             $table->string('type'); // supplier_debit, supplier_credit, customer_debit, customer_credit, product_stock_in, product_stock_out
             $table->integer('amount')->nullable(); // cents, use PriceCast
             $table->integer('quantity')->nullable(); // for stock movements
@@ -26,4 +27,3 @@ return new class extends Migration
         Schema::dropIfExists('transactions');
     }
 };
-

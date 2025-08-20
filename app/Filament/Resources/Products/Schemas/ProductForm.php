@@ -35,41 +35,59 @@ class ProductForm
                                 Section::make('Pricing')
                                     ->schema([
                                         TextInput::make('price')
-                                            ->integer()
                                             ->prefix('PKR')
-                                            ->helperText('Customers will see this price.')
+                                            ->helperText('Base price for this product.')
+                                            ->numeric()
+                                            ->step(0.01)
                                             ->required()
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
-                                            ->afterStateUpdated(function ($state, $set, $get) {
-                                                $taxPercentage = $get('tax_percentage');
-                                                $taxAmount = round(($state / 100) * $taxPercentage, 2);
-                                                $set('tax_amount', $taxAmount);
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                $salePercentage = (float) $get('sale_percentage');
+                                                if ($state > 0 && $salePercentage !== null && $salePercentage !== '') {
+                                                    $salePrice = $state - ($state * ($salePercentage / 100));
+                                                    $set('sale_price', round($salePrice, 2));
+                                                } elseif ($state > 0) {
+                                                    $set('sale_price', null);
+                                                }
+                                                $salePrice = (float) $get('sale_price');
+                                                if ($state > 0 && $salePrice > 0) {
+                                                    $percentage = 100 - (($salePrice / $state) * 100);
+                                                    $set('sale_percentage', round($percentage, 2));
+                                                }
                                             }),
-                                        TextInput::make('tax_percentage')
-                                            ->integer()
-                                            ->prefix('%')
-                                            ->columnSpan(1)
-                                            ->live(debounce: 1000)
-                                            ->afterStateUpdated(function ($state, $set, $get) {
-                                                $price = $get('price');
-                                                $taxPercentage = $state;
-                                                $taxAmount = round(($price / 100) * $taxPercentage, 2);
-                                                $set('tax_amount', $taxAmount);
-                                            }),
-                                        TextInput::make('tax_amount')
-                                            ->prefix('PKR')
-                                            ->columnSpan(1)
-                                            ->disabled(),
                                         TextInput::make('sale_price')
                                             ->prefix('PKR')
                                             ->helperText('Customers will see this price if you set a sale price.')
-                                            ->integer()
-                                            ->columnSpan(2),
-                                        TextInput::make('cost_price')
-                                            ->prefix('PKR')
-                                            ->helperText('Supplier\'s price.')
-                                            ->columnSpan(2),
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->columnSpan(2)
+                                            ->live(debounce: 1000)
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                $price = (float) $get('price');
+                                                if ($price > 0 && $state !== null) {
+                                                    $percentage = 100 - (($state / $price) * 100);
+                                                    $set('sale_percentage', round($percentage, 2));
+                                                } elseif ($state === null || $state === '') {
+                                                    $set('sale_percentage', null);
+                                                }
+                                            }),
+                                        TextInput::make('sale_percentage')
+                                            ->prefix('%')
+                                            ->helperText('Or set a sale percentage for this product.')
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->columnSpan(2)
+                                            ->live(debounce: 1000)
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                $price = (float) $get('price');
+                                                if ($price > 0 && $state !== null) {
+                                                    $salePrice = $price - ($price * ($state / 100));
+                                                    $set('sale_price', round($salePrice, 2));
+                                                } elseif ($state === null || $state === '') {
+                                                    $set('sale_price', null);
+                                                }
+                                            }),
                                     ])
                                     ->columns(4)
                                     ->columnSpanFull(),
@@ -81,10 +99,6 @@ class ProductForm
                                         TextInput::make('barcode')
                                             ->label('Barcode (ISBN, UPC, GTIN, etc.)')
                                             ->required(),
-                                        TextInput::make('stock')
-                                            ->label('Quantity')
-                                            ->integer()
-                                            ->default(0),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),

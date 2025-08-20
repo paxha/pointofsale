@@ -9,4 +9,3 @@ class ViewCustomer extends ViewRecord
 {
     protected static string $resource = CustomerResource::class;
 }
-

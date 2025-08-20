@@ -9,6 +9,7 @@ use Filament\Tables\Table;
 class TransactionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'transactions';
+
     protected static ?string $title = 'Transactions';
 
     public function table(Table $table): Table

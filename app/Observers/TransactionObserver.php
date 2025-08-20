@@ -3,9 +3,9 @@
 namespace App\Observers;
 
 use App\Models\Procurement;
-use App\Models\Sale;
 use App\Models\ProcurementProduct;
 use App\Models\ProductSale;
+use App\Models\Sale;
 use App\Models\Transaction;
 
 class TransactionObserver

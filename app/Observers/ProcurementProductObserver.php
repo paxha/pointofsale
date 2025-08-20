@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Models\ProcurementProduct;
-use App\Models\Transaction;
 use App\Models\Product;
 
 class ProcurementProductObserver

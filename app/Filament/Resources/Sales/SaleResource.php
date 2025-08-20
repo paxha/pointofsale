@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sales;
 
+use App\Filament\Resources\RelationManagers\TransactionsRelationManager;
 use App\Filament\Resources\Sales\Pages\CreateSale;
 use App\Filament\Resources\Sales\Pages\EditSale;
 use App\Filament\Resources\Sales\Pages\ListSales;
@@ -10,7 +11,6 @@ use App\Filament\Resources\Sales\Schemas\SaleForm;
 use App\Filament\Resources\Sales\Schemas\SaleInfolist;
 use App\Filament\Resources\Sales\Tables\SalesTable;
 use App\Models\Sale;
-use App\Filament\Resources\RelationManagers\TransactionsRelationManager;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

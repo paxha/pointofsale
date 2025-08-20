@@ -258,7 +258,7 @@ class SaleForm
                                                 });
                                             } catch (Throwable $e) {
                                                 Notification::make()
-                                                    ->title('Failed to create sale: ' . $e->getMessage())
+                                                    ->title('Failed to create sale: '.$e->getMessage())
                                                     ->danger()
                                                     ->send();
 

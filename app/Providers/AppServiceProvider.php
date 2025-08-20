@@ -3,15 +3,15 @@
 namespace App\Providers;
 
 use App\Models\Permission;
-use App\Models\Role;
 use App\Models\Procurement;
-use App\Models\Sale;
 use App\Models\ProcurementProduct;
 use App\Models\ProductSale;
+use App\Models\Role;
+use App\Models\Sale;
 use App\Observers\ProcurementObserver;
-use App\Observers\SaleObserver;
 use App\Observers\ProcurementProductObserver;
 use App\Observers\ProductSaleObserver;
+use App\Observers\SaleObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider

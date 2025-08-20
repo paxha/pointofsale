@@ -83,5 +83,4 @@ class Store extends Model implements HasCurrentTenantLabel
     {
         return $this->hasMany(\App\Models\Transaction::class);
     }
-
 }
