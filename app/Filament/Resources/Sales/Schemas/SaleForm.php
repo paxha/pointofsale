@@ -183,6 +183,7 @@ class SaleForm
                                         Select::make('customer_id')
                                             ->relationship('customer', 'name')
                                             ->searchable(['name', 'phone'])
+                                            ->preload()
                                             ->getOptionLabelFromRecordUsing(fn (Model $record) => "$record->name - $record->phone")
                                             ->createOptionForm(fn (Schema $schema) => CustomerForm::configure($schema))
                                             ->createOptionModalHeading('New Customer'),

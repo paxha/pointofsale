@@ -81,6 +81,11 @@ class Procurement extends Model
         return $this->hasMany(ProcurementProduct::class);
     }
 
+    public function transactions()
+    {
+        return $this->morphMany(Transaction::class, 'transactionable');
+    }
+
     public function recalculateTotals(): void
     {
         $this->loadMissing('procurementProducts');

@@ -9,6 +9,7 @@ use App\Filament\Resources\Procurements\Pages\ViewProcurement;
 use App\Filament\Resources\Procurements\Schemas\ProcurementForm;
 use App\Filament\Resources\Procurements\Schemas\ProcurementInfolist;
 use App\Filament\Resources\Procurements\Tables\ProcurementsTable;
+use App\Filament\Resources\RelationManagers\TransactionsRelationManager;
 use App\Models\Procurement;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -49,7 +50,7 @@ class ProcurementResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TransactionsRelationManager::class,
         ];
     }
 
