@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Procurements;
 
+use App\Filament\Resources\Procurements\Pages\CloseProcurement;
 use App\Filament\Resources\Procurements\Pages\CreateProcurement;
 use App\Filament\Resources\Procurements\Pages\EditProcurement;
 use App\Filament\Resources\Procurements\Pages\ListProcurements;
@@ -61,6 +62,7 @@ class ProcurementResource extends Resource
             'create' => CreateProcurement::route('/create'),
             'view' => ViewProcurement::route('/{record}'),
             'edit' => EditProcurement::route('/{record}/edit'),
+            'close' => CloseProcurement::route('/{record}/close'),
         ];
     }
 

@@ -19,7 +19,8 @@ class ProcurementInfolist
                         Grid::make()->schema([
                             Section::make('Details')
                                 ->schema([
-                                    TextEntry::make('name'),
+                                    TextEntry::make('supplier.name')->label('Supplier'),
+                                    TextEntry::make('reference')->label('Reference'),
                                     TextEntry::make('status')->badge(),
                                 ])
                                 ->columns(2)
@@ -28,8 +29,12 @@ class ProcurementInfolist
                                 ->schema([
                                     TextEntry::make('total_requested_quantity')->label('Requested qty'),
                                     TextEntry::make('total_received_quantity')->label('Received qty'),
-                                    TextEntry::make('total_requested_cost_price')->label('Requested cost')->money('PKR', decimalPlaces: 0),
+                                    TextEntry::make('total_requested_supplier_price')->label('Requested supplier price')->money('PKR', decimalPlaces: 0),
+                                    TextEntry::make('total_received_supplier_price')->label('Received supplier price')->money('PKR', decimalPlaces: 0),
                                     TextEntry::make('total_requested_tax_amount')->label('Requested tax')->money('PKR', decimalPlaces: 0),
+                                    TextEntry::make('total_received_tax_amount')->label('Received tax')->money('PKR', decimalPlaces: 0),
+                                    TextEntry::make('total_requested_unit_price')->label('Requested unit price')->money('PKR', decimalPlaces: 0),
+                                    TextEntry::make('total_received_unit_price')->label('Received unit price')->money('PKR', decimalPlaces: 0),
                                 ])
                                 ->columns(2)
                                 ->columnSpanFull(),
@@ -39,11 +44,12 @@ class ProcurementInfolist
                                         ->schema([
                                             TextEntry::make('product.name')->label('Product'),
                                             TextEntry::make('requested_quantity')->label('Qty'),
+                                            TextEntry::make('requested_supplier_price')->label('Supplier price')->money('PKR', decimalPlaces: 0),
+                                            TextEntry::make('requested_supplier_percentage')->label('Supplier %'),
                                             TextEntry::make('requested_unit_price')->label('Unit price')->money('PKR', decimalPlaces: 0),
                                             TextEntry::make('requested_tax_percentage')->label('Tax %'),
-                                            TextEntry::make('requested_cost_price')->label('Cost price')->money('PKR', decimalPlaces: 0),
                                         ])
-                                        ->columns(5)
+                                        ->columns(6)
                                         ->contained(false),
                                 ])
                                 ->columnSpanFull(),

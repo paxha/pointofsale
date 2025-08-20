@@ -27,8 +27,8 @@ return new class extends Migration
             $table->integer('total_received_unit_price')->nullable();
             $table->integer('total_requested_tax_amount')->nullable();
             $table->integer('total_received_tax_amount')->nullable();
-            $table->integer('total_requested_cost_price')->nullable();
-            $table->integer('total_received_cost_price')->nullable();
+            $table->integer('total_requested_supplier_price')->nullable();
+            $table->integer('total_received_supplier_price')->nullable();
             $table->string('status')->default(ProcurementStatus::default());
             $table->softDeletes();
             $table->timestamps();

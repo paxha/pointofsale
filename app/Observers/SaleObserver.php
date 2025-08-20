@@ -23,6 +23,13 @@ class SaleObserver
         foreach ($sale->products as $product) {
             $pivot = $product->pivot;
             if ($pivot->quantity > 0) {
+                // Save supplier/customer details in pivot
+                $product->sales()->updateExistingPivot($sale->id, [
+                    'supplier_percentage_at_sale' => $product->supplier_percentage,
+                    'supplier_cost_price_at_sale' => $product->cost_price,
+                    'customer_price' => $pivot->unit_price,
+                    'customer_discount' => $pivot->discount,
+                ]);
                 $product->transactions()->create([
                     'store_id' => $sale->store_id,
                     'type' => 'product_stock_out',
@@ -31,7 +38,17 @@ class SaleObserver
                     'note' => 'Stock out from sale',
                     'meta' => [
                         'sale_id' => $sale->id,
+                        'supplier_percentage' => $product->supplier_percentage,
+                        'supplier_cost_price' => $product->cost_price,
+                        'customer_price' => $pivot->unit_price,
+                        'customer_discount' => $pivot->discount,
                     ],
+                    'supplier_percentage' => $product->supplier_percentage,
+                    'supplier_cost_price' => $product->cost_price,
+                    'customer_price' => $pivot->unit_price,
+                    'customer_discount' => $pivot->discount,
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
                 ]);
                 // Update product stock
                 $product->decrement('stock', $pivot->quantity);

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Procurements\Tables;
 
 use App\Enums\ProcurementStatus;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -23,15 +24,38 @@ class ProcurementsTable
                 TextColumn::make('reference')
                     ->prefix('#')
                     ->searchable(),
+                TextColumn::make('supplier.name')
+                    ->label('Supplier')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('total_requested_quantity')
                     ->label('Req. Qty')
                     ->sortable(),
-                TextColumn::make('total_requested_cost_price')
-                    ->label('Req. Cost')
+                TextColumn::make('total_received_quantity')
+                    ->label('Rec. Qty')
+                    ->sortable(),
+                TextColumn::make('total_requested_supplier_price')
+                    ->label('Req. Supplier Price')
+                    ->money('PKR')
+                    ->sortable(),
+                TextColumn::make('total_received_supplier_price')
+                    ->label('Rec. Supplier Price')
                     ->money('PKR')
                     ->sortable(),
                 TextColumn::make('total_requested_tax_amount')
                     ->label('Req. Tax')
+                    ->money('PKR')
+                    ->sortable(),
+                TextColumn::make('total_received_tax_amount')
+                    ->label('Rec. Tax')
+                    ->money('PKR')
+                    ->sortable(),
+                TextColumn::make('total_requested_unit_price')
+                    ->label('Req. Unit Price')
+                    ->money('PKR')
+                    ->sortable(),
+                TextColumn::make('total_received_unit_price')
+                    ->label('Rec. Unit Price')
                     ->money('PKR')
                     ->sortable(),
                 TextColumn::make('status')
@@ -59,6 +83,14 @@ class ProcurementsTable
                     ->hiddenLabel(),
                 EditAction::make()
                     ->hiddenLabel()
+                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
+                Action::make('close')
+                    ->label('Close')
+                    ->icon('heroicon-o-lock-closed')
+                    ->url(fn ($record) => route('filament.store.resources.procurements.close', [
+                        'tenant' => filament()->getTenant(),
+                        'record' => $record,
+                    ]))
                     ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
                 DeleteAction::make()
                     ->hiddenLabel(),

@@ -23,6 +23,7 @@ class ProcurementProduct extends Pivot
         'received_unit_price',
         'received_tax_percentage',
         'received_cost_price',
+        'supplier_percentage',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class ProcurementProduct extends Pivot
             'requested_cost_price' => PriceCast::class,
             'received_unit_price' => PriceCast::class,
             'received_cost_price' => PriceCast::class,
+            'supplier_percentage' => 'float',
         ];
     }
 

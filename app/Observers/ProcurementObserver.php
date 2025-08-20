@@ -3,8 +3,6 @@
 namespace App\Observers;
 
 use App\Models\Procurement;
-use App\Models\Transaction;
-use App\Models\Product;
 
 class ProcurementObserver
 {
@@ -13,17 +11,31 @@ class ProcurementObserver
         // Only act when status changes to closed
         if ($procurement->isDirty('status') && $procurement->status->value === 'closed') {
             // Supplier debit transaction
-            $procurement->transactions()->create([
-                'store_id' => $procurement->store_id,
-                'type' => 'supplier_debit',
-                'amount' => $procurement->total_received_cost_price,
-                'note' => 'Procurement closed: supplier debit',
-            ]);
+            $procurement->transactions()
+                ->create([
+                    'store_id' => $procurement->store_id,
+                    'type' => 'supplier_debit',
+                    'amount' => $procurement->total_received_cost_price,
+                    'note' => 'Procurement closed: supplier debit',
+                ]);
 
             // For each received product, create stock-in transaction and update stock
             foreach ($procurement->procurementProducts as $pp) {
                 if ($pp->received_quantity > 0) {
-                    $pp->product->transactions()->create([
+                    $product = $pp->product;
+
+                    $product->tax_percentage = $pp->received_tax_percentage;
+                    $product->tax_amount = $pp->received_tax_amount;
+                    $product->supplier_percentage = $pp->received_supplier_percentage;
+                    $product->supplier_price = $pp->received_supplier_price;
+                    $product->save();
+
+                    if ($pp->supplier_percentage !== null) {
+                        $product->cost_price = $pp->received_unit_price;
+                        $product->supplier_percentage = $pp->supplier_percentage;
+                        $product->save();
+                    }
+                    $product->transactions()->create([
                         'store_id' => $procurement->store_id,
                         'type' => 'product_stock_in',
                         'amount' => $pp->received_unit_price * $pp->received_quantity,
@@ -31,10 +43,12 @@ class ProcurementObserver
                         'note' => 'Stock in from procurement',
                         'meta' => [
                             'procurement_id' => $procurement->id,
+                            'supplier_percentage' => $pp->supplier_percentage,
+                            'cost_price' => $pp->received_unit_price,
                         ],
                     ]);
                     // Update product stock
-                    $pp->product->increment('stock', $pp->received_quantity);
+                    $product->increment('stock', $pp->received_quantity);
                 }
             }
         }
