@@ -11,6 +11,8 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use App\Filament\Imports\CategoryImporter;
+use Filament\Actions\ImportAction;
 
 class CategoriesTable
 {
@@ -34,6 +36,10 @@ class CategoriesTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->headerActions([
+                ImportAction::make()
+                    ->importer(CategoryImporter::class)
             ])
             ->defaultSort('id', 'desc')
             ->filters([
