@@ -25,11 +25,17 @@ class SaleInfolist
                                     ->schema([
                                         Flex::make([
                                             TextEntry::make('name')->label('Product')->columnSpan(3),
-                                            TextEntry::make('pivot.quantity')->label('Qty')->columnSpan(1),
-                                            TextEntry::make('pivot.discount')->label('Disc.')->columnSpan(1),
-                                            TextEntry::make('pivot.price')->label('Price')->money('PKR')->columnSpan(1),
-                                        ])
-                                            ->columns(6),
+                                            TextEntry::make('pivot.unit_price')->label('Unit Price')->money('PKR')->columnSpan(1),
+                                            TextEntry::make('pivot.quantity')->label('Qty')->columnSpan(1)
+                                                ->color(fn($state) => $state < 0 ? 'danger' : null)
+                                                ->badge(fn($state) => $state < 0 ? 'Return' : null),
+                                            TextEntry::make('pivot.discount')->label('Disc. %')->columnSpan(1),
+                                            TextEntry::make('pivot.tax')->label('Tax')->money('PKR')->columnSpan(1),
+                                            TextEntry::make('pivot_total')->label('Line Total')->money('PKR')->columnSpan(1)
+                                                ->state(fn($record) =>
+                                                    $record->pivot->unit_price * $record->pivot->quantity * (1 - ($record->pivot->discount / 100))
+                                                ),
+                                        ])->columns(8),
                                     ])
                                     ->contained(false)
                                     ->columnSpanFull(),
@@ -54,9 +60,16 @@ class SaleInfolist
                                 Section::make('Summary')
                                     ->components([
                                         TextEntry::make('subtotal')->label('Subtotal')->money('PKR'),
-                                        TextEntry::make('discount')->label('Discount')->prefix('%'),
+                                        TextEntry::make('discount')->label('Discount')->suffix('%'),
                                         TextEntry::make('tax')->label('Tax')->money('PKR'),
                                         TextEntry::make('total')->label('Total')->money('PKR'),
+                                    ])
+                                    ->inlineLabel(),
+                                Section::make('Payment Details')
+                                    ->components([
+                                        TextEntry::make('paid_at')->label('Paid Date')->dateTime(),
+                                        TextEntry::make('outstanding')->label('Outstanding')->money('PKR')
+                                            ->state(fn($record) => $record->total - $record->transactions->where('type', 'customer_credit')->sum('amount')),
                                     ])
                                     ->inlineLabel(),
                             ]),

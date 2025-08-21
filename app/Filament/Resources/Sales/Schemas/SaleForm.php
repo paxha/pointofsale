@@ -119,8 +119,9 @@ class SaleForm
                                                 TextInput::make('name')
                                                     ->disabled(),
                                                 TextInput::make('quantity')
-                                                    ->minValue(1)
                                                     ->numeric()
+                                                    ->rule('not_in:0')
+                                                    ->placeholder('Use negative for returns')
                                                     ->live(debounce: 1000)
                                                     ->afterStateUpdated(function ($state, $set, $get) {
                                                         SaleForm::recalcLine($get, $set);
@@ -367,7 +368,7 @@ class SaleForm
         string   $discountPath = '../../discount',
     ): void
     {
-        $quantity = max(1, (int)($get('quantity') ?: 1));
+        $quantity = (int)($get('quantity') ?: 1); // Allow negative, disallow zero via validation
         $discount = min(100, max(0, (int)($get('discount') ?? 0)));
 
         $set('quantity', $quantity);
