@@ -13,67 +13,60 @@ class ProductInfolist
     {
         return $schema
             ->components([
-                Grid::make()
+                Grid::make(3)
                     ->schema([
-                        Grid::make()->schema([
-                            Section::make()
-                                ->schema([
-                                    TextEntry::make('name'),
-                                    TextEntry::make('description')
-                                        ->columnSpanFull(),
-                                ])
-                                ->columns()
-                                ->columnSpanFull(),
-                            Section::make('Pricing')
-                                ->schema([
-                                    TextEntry::make('price')
-                                        ->money('PKR', decimalPlaces: 0),
-                                    TextEntry::make('cost_price')
-                                        ->money('PKR', decimalPlaces: 0)
-                                        ->helperText('Customers won\'t see this price.'),
-                                ])
-                                ->columns()
-                                ->columnSpanFull(),
-                            Section::make('Inventory')
-                                ->schema([
-                                    TextEntry::make('sku')
-                                        ->label('SKU (Stock Keeping Unit)'),
-                                    TextEntry::make('barcode')
-                                        ->label('Barcode (ISBN, UPC, GTIN, etc.)'),
-                                    TextEntry::make('stock')
-                                        ->label('Quantity'),
-                                ])
-                                ->columns()
-                                ->columnSpanFull(),
-                        ])
+                        Grid::make()
+                            ->schema([
+                                Section::make('General')
+                                    ->schema([
+                                        TextEntry::make('name'),
+                                        TextEntry::make('description'),
+                                    ])
+                                    ->columns()
+                                    ->columnSpanFull(),
+                                Section::make('Pricing')
+                                    ->schema([
+                                        TextEntry::make('price')->money('PKR', decimalPlaces: 0),
+                                        TextEntry::make('sale_price')->money('PKR', decimalPlaces: 0),
+                                        TextEntry::make('sale_percentage')->label('Sale %')->suffix('%'),
+                                        TextEntry::make('tax_percentage')->label('Tax %')->suffix('%'),
+                                        TextEntry::make('tax_amount')->money('PKR', decimalPlaces: 0),
+                                        TextEntry::make('supplier_percentage')->label('Supplier %')->suffix('%'),
+                                        TextEntry::make('supplier_price')->money('PKR', decimalPlaces: 0),
+                                    ])
+                                    ->columns()
+                                    ->columnSpanFull(),
+                                Section::make('Inventory')
+                                    ->schema([
+                                        TextEntry::make('sku')->label('SKU'),
+                                        TextEntry::make('barcode')->label('Barcode'),
+                                        TextEntry::make('stock')->label('Quantity'),
+                                    ])
+                                    ->columns()
+                                    ->columnSpanFull(),
+                            ])
                             ->columnSpan(2),
                         Grid::make()->schema([
                             Section::make('Status')
                                 ->schema([
-                                    TextEntry::make('status')
-                                        ->badge(),
+                                    TextEntry::make('status')->badge(),
                                 ])
                                 ->columnSpanFull(),
                             Section::make('Associations')
                                 ->schema([
-                                    TextEntry::make('category.name')
-                                        ->label('Category'),
+                                    TextEntry::make('category.name')->label('Category'),
                                 ])
                                 ->columnSpanFull(),
-                            Section::make('Extras')
+                            Section::make('Logs')
                                 ->schema([
-                                    TextEntry::make('deleted_at')
-                                        ->dateTime(),
-                                    TextEntry::make('created_at')
-                                        ->dateTime(),
-                                    TextEntry::make('updated_at')
-                                        ->dateTime(),
+                                    TextEntry::make('created_at')->dateTime(),
+                                    TextEntry::make('updated_at')->dateTime(),
+                                    TextEntry::make('deleted_at')->dateTime()->hidden(fn($record) => !$record->deleted_at),
                                 ])
                                 ->columnSpanFull(),
                         ])
                             ->columnSpan(1),
                     ])
-                    ->columns(3)
                     ->columnSpanFull(),
             ]);
     }
