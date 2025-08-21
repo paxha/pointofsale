@@ -7,7 +7,6 @@ use App\Filament\Resources\Categories\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Categories\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -27,8 +26,8 @@ class ProductForm
                                     ->schema([
                                         TextInput::make('name')
                                             ->required(),
-                                        TextArea::make('description')
-                                            ->columnSpanFull(),
+                                        TextInput::make('description')
+                                            ->nullable(),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),
@@ -43,14 +42,14 @@ class ProductForm
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $salePercentage = (float) $get('sale_percentage');
+                                                $salePercentage = (float)$get('sale_percentage');
                                                 if ($state > 0 && $salePercentage !== null && $salePercentage !== '') {
                                                     $salePrice = $state - ($state * ($salePercentage / 100));
                                                     $set('sale_price', round($salePrice, 2));
                                                 } elseif ($state > 0) {
                                                     $set('sale_price', null);
                                                 }
-                                                $salePrice = (float) $get('sale_price');
+                                                $salePrice = (float)$get('sale_price');
                                                 if ($state > 0 && $salePrice > 0) {
                                                     $percentage = 100 - (($salePrice / $state) * 100);
                                                     $set('sale_percentage', round($percentage, 2));
@@ -64,7 +63,7 @@ class ProductForm
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $price = (float) $get('price');
+                                                $price = (float)$get('price');
                                                 if ($price > 0 && $state !== null) {
                                                     $percentage = 100 - (($state / $price) * 100);
                                                     $set('sale_percentage', round($percentage, 2));
@@ -80,7 +79,7 @@ class ProductForm
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $price = (float) $get('price');
+                                                $price = (float)$get('price');
                                                 if ($price > 0 && $state !== null) {
                                                     $salePrice = $price - ($price * ($state / 100));
                                                     $set('sale_price', round($salePrice, 2));
@@ -118,7 +117,7 @@ class ProductForm
                                     ->schema([
                                         Select::make('category_id')
                                             ->relationship('category', 'name')
-                                            ->createOptionForm(fn (Schema $schema) => CategoryForm::configure($schema))
+                                            ->createOptionForm(fn(Schema $schema) => CategoryForm::configure($schema))
                                             ->searchable()
                                             ->preload(),
                                     ])

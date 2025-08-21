@@ -11,6 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -28,34 +29,12 @@ class ProcurementsTable
                     ->label('Supplier')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('total_requested_quantity')
-                    ->label('Req. Qty')
-                    ->sortable(),
-                TextColumn::make('total_received_quantity')
-                    ->label('Rec. Qty')
-                    ->sortable(),
                 TextColumn::make('total_requested_supplier_price')
                     ->label('Req. Supplier Price')
                     ->money('PKR')
                     ->sortable(),
                 TextColumn::make('total_received_supplier_price')
                     ->label('Rec. Supplier Price')
-                    ->money('PKR')
-                    ->sortable(),
-                TextColumn::make('total_requested_tax_amount')
-                    ->label('Req. Tax')
-                    ->money('PKR')
-                    ->sortable(),
-                TextColumn::make('total_received_tax_amount')
-                    ->label('Rec. Tax')
-                    ->money('PKR')
-                    ->sortable(),
-                TextColumn::make('total_requested_unit_price')
-                    ->label('Req. Unit Price')
-                    ->money('PKR')
-                    ->sortable(),
-                TextColumn::make('total_received_unit_price')
-                    ->label('Rec. Unit Price')
                     ->money('PKR')
                     ->sortable(),
                 TextColumn::make('status')
@@ -83,17 +62,15 @@ class ProcurementsTable
                     ->hiddenLabel(),
                 EditAction::make()
                     ->hiddenLabel()
-                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
                 Action::make('close')
-                    ->label('Close')
-                    ->icon('heroicon-o-lock-closed')
-                    ->url(fn ($record) => route('filament.store.resources.procurements.close', [
+                    ->label('Receive')
+                    ->icon(Heroicon::Check)
+                    ->url(fn($record) => route('filament.store.resources.procurements.close', [
                         'tenant' => filament()->getTenant(),
                         'record' => $record,
                     ]))
-                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
-                DeleteAction::make()
-                    ->hiddenLabel(),
+                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

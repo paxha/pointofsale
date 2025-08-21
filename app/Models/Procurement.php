@@ -92,28 +92,26 @@ class Procurement extends Model
         $this->loadMissing('procurementProducts');
         $products = $this->procurementProducts;
 
-        $totalRequestedQuantity = (int) $products->sum('requested_quantity');
-        $totalReceivedQuantity = (int) $products->sum('received_quantity');
+        $totalRequestedQuantity = (int)$products->sum('requested_quantity');
+        $totalReceivedQuantity = (int)$products->sum('received_quantity');
 
-        $totalRequestedUnitPrice = (int) $products->sum(fn ($p) => (int) ($p->requested_quantity ?? 0) * (int) ($p->requested_unit_price ?? 0));
-        $totalRequestedSupplierPrice = (int) $products->sum(fn ($p) => (int) ($p->requested_quantity ?? 0) * (int) ($p->requested_supplier_price ?? 0));
-        $totalRequestedTaxAmount = (int) $products->sum('requested_tax_amount');
-        $totalRequestedSupplierPercentage = $totalRequestedQuantity > 0 ? $products->sum(fn ($p) => (float) ($p->requested_supplier_percentage ?? 0) * (int) ($p->requested_quantity ?? 0)) / $totalRequestedQuantity : 0;
+        $totalRequestedUnitPrice = (int)$products->sum(fn($p) => (int)($p->requested_quantity ?? 0) * (int)($p->requested_unit_price ?? 0));
+        $totalRequestedSupplierPrice = (int)$products->sum(fn($p) => (int)($p->requested_quantity ?? 0) * (int)($p->requested_supplier_price ?? 0));
+        $totalRequestedTaxAmount = (int)$products->sum('requested_tax_amount');
 
-        $totalReceivedUnitPrice = (int) $products->sum(fn ($p) => (int) ($p->received_quantity ?? 0) * (int) ($p->received_unit_price ?? 0));
-        $totalReceivedSupplierPrice = (int) $products->sum(fn ($p) => (int) ($p->received_quantity ?? 0) * (int) ($p->received_supplier_price ?? 0));
-        $totalReceivedTaxAmount = (int) $products->sum('received_tax_amount');
-        $totalReceivedSupplierPercentage = $totalReceivedQuantity > 0 ? $products->sum(fn ($p) => (float) ($p->received_supplier_percentage ?? 0) * (int) ($p->received_quantity ?? 0)) / $totalReceivedQuantity : 0;
+        $totalReceivedUnitPrice = (int)$products->sum(fn($p) => (int)($p->received_quantity ?? 0) * (int)($p->received_unit_price ?? 0));
+        $totalReceivedSupplierPrice = (int)$products->sum(fn($p) => (int)($p->received_quantity ?? 0) * (int)($p->received_supplier_price ?? 0));
+        $totalReceivedTaxAmount = (int)$products->sum('received_tax_amount');
 
         $this->forceFill([
             'total_requested_quantity' => $totalRequestedQuantity,
             'total_received_quantity' => $totalReceivedQuantity,
             'total_requested_unit_price' => $totalRequestedUnitPrice,
-            'total_requested_supplier_price' => $totalRequestedSupplierPrice,
-            'total_requested_tax_amount' => $totalRequestedTaxAmount,
             'total_received_unit_price' => $totalReceivedUnitPrice,
-            'total_received_supplier_price' => $totalReceivedSupplierPrice,
+            'total_requested_tax_amount' => $totalRequestedTaxAmount,
             'total_received_tax_amount' => $totalReceivedTaxAmount,
+            'total_requested_supplier_price' => $totalRequestedSupplierPrice,
+            'total_received_supplier_price' => $totalReceivedSupplierPrice,
         ])->saveQuietly();
     }
 }

@@ -30,10 +30,11 @@ class ProcurementForm
                                 $supplier = Supplier::find($state);
                                 $supplierId = $supplier->id;
                                 $procurementCount = $supplier->procurements()->count();
-                                $reference = $supplierId . '-' . str_pad($procurementCount + 1, 4, '0', STR_PAD_LEFT);
+                                $reference = $supplierId . '-' . str_pad($procurementCount + 1, 2, '0', STR_PAD_LEFT);
                                 $set('reference', $reference);
                             }),
                         TextInput::make('reference')
+                            ->prefix('#')
                             ->readOnly(),
                         Select::make('status')
                             ->options(ProcurementStatus::class)

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Procurements;
 
+use App\Enums\ProcurementStatus;
 use App\Filament\Resources\Procurements\Pages\CloseProcurement;
 use App\Filament\Resources\Procurements\Pages\CreateProcurement;
 use App\Filament\Resources\Procurements\Pages\EditProcurement;
@@ -18,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 
@@ -53,6 +55,16 @@ class ProcurementResource extends Resource
         return [
             TransactionsRelationManager::class,
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return $record->status !== ProcurementStatus::Closed;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return $record->status !== ProcurementStatus::Closed;
     }
 
     public static function getPages(): array

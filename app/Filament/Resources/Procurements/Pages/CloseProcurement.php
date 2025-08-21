@@ -6,6 +6,7 @@ use App\Enums\ProcurementStatus;
 use App\Filament\Resources\Procurements\ProcurementResource;
 use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -191,7 +192,11 @@ class CloseProcurement extends Page implements HasSchemas
         }
         $this->record->status = ProcurementStatus::Closed;
         $this->record->save();
-        $this->notify('success', 'Procurement closed and details saved.');
+        $this->record->recalculateTotals();
+        Notification::make()
+            ->title('Procurement closed')
+            ->body('Procurement details saved successfully.')
+            ->success();
         $this->redirect(ProcurementResource::getUrl('index'));
     }
 }
