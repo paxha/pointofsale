@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Enums\ProductStatus;
+use App\Filament\Resources\Brands\Schemas\BrandForm;
 use App\Filament\Resources\Categories\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Categories\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
@@ -115,6 +116,11 @@ class ProductForm
                                     ->columnSpanFull(),
                                 Section::make('Associations')
                                     ->schema([
+                                        Select::make('brand_id')
+                                            ->relationship('brand', 'name')
+                                            ->createOptionForm(fn(Schema $schema) => BrandForm::configure($schema))
+                                            ->searchable()
+                                            ->preload(),
                                         Select::make('category_id')
                                             ->relationship('category', 'name')
                                             ->createOptionForm(fn(Schema $schema) => CategoryForm::configure($schema))

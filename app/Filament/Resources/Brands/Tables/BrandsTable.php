@@ -1,21 +1,24 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Tables;
+namespace App\Filament\Resources\Brands\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\ReplicateAction;
-use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use App\Filament\Imports\CategoryImporter;
+use Filament\Actions\ReplicateAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use App\Filament\Imports\BrandImporter;
 use Filament\Actions\ImportAction;
+use App\Filament\Exports\BrandExporter;
+use Filament\Actions\ExportBulkAction;
 
-class CategoriesTable
+
+class BrandsTable
 {
     public static function configure(Table $table): Table
     {
@@ -44,7 +47,7 @@ class CategoriesTable
             ])
             ->headerActions([
                 ImportAction::make()
-                    ->importer(CategoryImporter::class)
+                    ->importer(BrandImporter::class)
             ])
             ->defaultSort('id', 'desc')
             ->filters([
@@ -63,6 +66,8 @@ class CategoriesTable
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exporter(BrandExporter::class),
                 ]),
             ]);
     }

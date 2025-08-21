@@ -59,4 +59,9 @@ class Product extends Model
     {
         return $this->morphMany(Transaction::class, 'transactionable');
     }
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
 }

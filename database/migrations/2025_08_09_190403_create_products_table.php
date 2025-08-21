@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ProductStatus;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Store;
 use Illuminate\Database\Migrations\Migration;
@@ -17,6 +18,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Brand::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Category::class)->nullable()->constrained()->nullOnDelete();
             $table->string('name')->nullable();
             $table->string('description')->nullable();
