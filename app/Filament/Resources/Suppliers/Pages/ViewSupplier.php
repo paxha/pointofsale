@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Suppliers\Pages;
 
 use App\Filament\Resources\Suppliers\SupplierResource;
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewSupplier extends ViewRecord
@@ -14,6 +17,9 @@ class ViewSupplier extends ViewRecord
     {
         return [
             EditAction::make(),
+            DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 }

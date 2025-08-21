@@ -20,9 +20,9 @@ return new class extends Migration {
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Customer::class)->nullable()->constrained()->nullOnDelete();
-            $table->integer('subtotal')->nullable();
-            $table->integer('discount')->nullable()->comment('Discount in percent');
-            $table->integer('tax')->nullable();
+            $table->integer('subtotal')->nullable()->comment('Subtotal before tax and discount. Calculated from product_sale');
+            $table->integer('tax')->nullable()->comment('Total tax amount. Calculated from product_sale');
+            $table->float('discount')->nullable()->comment('Discount on subtotal');
             $table->integer('total')->nullable();
             $table->string('status')->default(SaleStatus::Completed);
             $table->string('payment_status')->default(SalePaymentStatus::default());
@@ -33,12 +33,11 @@ return new class extends Migration {
         Schema::create('product_sale', function (Blueprint $table) {
             $table->foreignIdFor(Sale::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Product::class)->nullable()->constrained()->nullOnDelete();
-            $table->integer('unit_price');
-            $table->integer('cost_price')->nullable();
             $table->integer('quantity')->default(1);
+            $table->integer('unit_price');
             $table->integer('tax')->nullable();
-            $table->integer('price');
-            $table->integer('discount')->nullable()->comment('Discount in percent');
+            $table->float('discount')->nullable()->comment('Discount in percent');
+            $table->integer('supplier_price')->nullable();
         });
     }
 

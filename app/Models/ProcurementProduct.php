@@ -18,11 +18,15 @@ class ProcurementProduct extends Pivot
         'requested_quantity',
         'requested_unit_price',
         'requested_tax_percentage',
-        'requested_cost_price',
+        'requested_tax_amount',
+        'requested_supplier_percentage',
+        'requested_supplier_price',
         'received_quantity',
         'received_unit_price',
         'received_tax_percentage',
-        'received_cost_price',
+        'received_tax_amount',
+        'received_supplier_percentage',
+        'received_supplier_price',
     ];
 
     protected function casts(): array
@@ -32,6 +36,7 @@ class ProcurementProduct extends Pivot
             'requested_cost_price' => PriceCast::class,
             'received_unit_price' => PriceCast::class,
             'received_cost_price' => PriceCast::class,
+            'supplier_percentage' => 'float',
         ];
     }
 

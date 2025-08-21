@@ -23,9 +23,12 @@ class Product extends Model
         'price',
         'sale_price',
         'tax_percentage',
-        'cost_price',
         'stock',
         'status',
+        'supplier_percentage',
+        'tax_amount',
+        'supplier_price',
+        'sale_percentage',
     ];
 
     protected function casts(): array
@@ -34,8 +37,11 @@ class Product extends Model
             'price' => PriceCast::class,
             'sale_price' => PriceCast::class,
             'tax_amount' => PriceCast::class,
-            'cost_price' => PriceCast::class,
+            'supplier_price' => PriceCast::class,
             'status' => ProductStatus::class,
+            'sale_percentage' => 'float',
+            'supplier_percentage' => 'float',
+            'tax_percentage' => 'float',
         ];
     }
 
@@ -47,6 +53,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function transactions()
+    {
+        return $this->morphMany(Transaction::class, 'transactionable');
     }
 
     public function brand(): BelongsTo

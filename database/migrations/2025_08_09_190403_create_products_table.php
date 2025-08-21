@@ -26,9 +26,11 @@ return new class extends Migration
             $table->string('barcode')->nullable();
             $table->integer('price')->nullable();
             $table->integer('sale_price')->nullable();
-            $table->integer('tax_percentage')->nullable();
-            $table->integer('tax_amount')->virtualAs('tax_percentage * price / 100');
-            $table->integer('cost_price')->nullable()->comment('Supplier\'s price.');
+            $table->float('sale_percentage')->nullable();
+            $table->float('tax_percentage')->nullable();
+            $table->integer('tax_amount')->nullable();
+            $table->float('supplier_percentage')->nullable();
+            $table->integer('supplier_price')->nullable();
             $table->integer('stock')->default(0);
             $table->string('status')->default(ProductStatus::default());
             $table->softDeletes();

@@ -6,9 +6,9 @@ use App\Enums\ProcurementStatus;
 use App\Models\Product;
 use App\Models\Supplier;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -30,10 +30,11 @@ class ProcurementForm
                                 $supplier = Supplier::find($state);
                                 $supplierId = $supplier->id;
                                 $procurementCount = $supplier->procurements()->count();
-                                $reference = $supplierId.'-'.str_pad($procurementCount + 1, 4, '0', STR_PAD_LEFT);
+                                $reference = $supplierId . '-' . str_pad($procurementCount + 1, 2, '0', STR_PAD_LEFT);
                                 $set('reference', $reference);
                             }),
                         TextInput::make('reference')
+                            ->prefix('#')
                             ->readOnly(),
                         Select::make('status')
                             ->options(ProcurementStatus::class)
@@ -56,13 +57,7 @@ class ProcurementForm
                             ->afterStateUpdated(function ($state, $set, $get) {
                                 self::recalcSummary($get, $set);
                             })
-                            ->table([
-                                TableColumn::make('Product')->width('400px'),
-                                TableColumn::make('Quantity'),
-                                TableColumn::make('Cost Price'),
-                                TableColumn::make('Unit Price'),
-                                TableColumn::make('Tax %'),
-                            ])
+                            ->columns(4)
                             ->schema([
                                 Select::make('product_id')
                                     ->relationship('product', 'name')
@@ -72,69 +67,135 @@ class ProcurementForm
                                     ->required()
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
                                         $product = Product::find($state);
-                                        $set('requested_cost_price', $product->cost_price ?? 0);
+                                        $set('requested_supplier_price', $product->supplier_price ?? 0);
+                                        $set('requested_supplier_percentage', $product->supplier_percentage ?? 0);
                                         $set('requested_unit_price', $product->price ?? 0);
                                         $set('requested_tax_percentage', $product->tax_percentage ?? 0);
-
+                                        $set('requested_tax_amount', ($product->price ?? 0) * ($get('requested_quantity') ?? 1) * (($product->tax_percentage ?? 0) / 100));
                                         self::recalcLine($get, $set);
-                                    }),
-
+                                    })
+                                    ->columnSpan(2),
                                 TextInput::make('requested_quantity')
                                     ->default(1)
                                     ->integer()
                                     ->minValue(0)
-                                    ->reactive()
+                                    ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
+                                        $unitPrice = (float)$get('requested_unit_price');
+                                        $taxPercent = (float)$get('requested_tax_percentage');
+                                        $taxAmount = $unitPrice * ($state ?? 1) * ($taxPercent / 100);
+                                        $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
-                                    }),
-
-                                TextInput::make('requested_cost_price')
-                                    ->numeric()
-                                    ->reactive()
-                                    ->afterStateUpdated(function (mixed $state, $set, $get): void {
-                                        self::recalcLine($get, $set);
-                                    }),
+                                    })
+                                    ->label('Quantity'),
                                 TextInput::make('requested_unit_price')
                                     ->numeric()
-                                    ->reactive()
+                                    ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
+                                        $quantity = (float)$get('requested_quantity');
+                                        $taxPercent = (float)$get('requested_tax_percentage');
+                                        $taxAmount = ($state ?? 0) * $quantity * ($taxPercent / 100);
+                                        $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
-                                    }),
+                                    })
+                                    ->label('Unit Price'),
                                 TextInput::make('requested_tax_percentage')
                                     ->numeric()
-                                    ->reactive()
+                                    ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
+                                        $quantity = (float)$get('requested_quantity');
+                                        $unitPrice = (float)$get('requested_unit_price');
+                                        $taxAmount = $unitPrice * $quantity * (($state ?? 0) / 100);
+                                        $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
-                                    }),
+                                    })
+                                    ->label('Tax %'),
+                                TextInput::make('requested_tax_amount')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->label('Tax Amount'),
+                                TextInput::make('requested_supplier_percentage')
+                                    ->numeric()
+                                    ->live(debounce: 1000)
+                                    ->afterStateUpdated(function (mixed $state, $set, $get): void {
+                                        $unitPrice = (float) $get('requested_unit_price');
+                                        if ($unitPrice > 0) {
+                                            $supplierPrice = $unitPrice - ($unitPrice * ($state ?? 0) / 100);
+                                            $set('requested_supplier_price', round($supplierPrice, 2));
+                                        } else {
+                                            $set('requested_supplier_price', 0);
+                                        }
+                                        self::recalcLine($get, $set);
+                                    })
+                                    ->label('Supplier %'),
+                                TextInput::make('requested_supplier_price')
+                                    ->numeric()
+                                    ->live(debounce: 1000)
+                                    ->afterStateUpdated(function (mixed $state, $set, $get): void {
+                                        $unitPrice = (float) $get('requested_unit_price');
+                                        if ($unitPrice > 0) {
+                                            $supplierPercent = (($unitPrice - ($state ?? 0)) / $unitPrice) * 100;
+                                            $set('requested_supplier_percentage', round($supplierPercent, 2));
+                                        } else {
+                                            $set('requested_supplier_percentage', 0);
+                                        }
+                                        self::recalcLine($get, $set);
+                                    })
+                                    ->label('Supplier Price'),
                             ])
                             ->addActionLabel('Add product')
                             ->columnSpanFull(),
                     ])
                     ->columns()
                     ->columnSpanFull(),
-                Section::make('Request Summary')
-                    ->schema([
-                        TextInput::make('total_requested_quantity')
-                            ->label('Total Quantity')
-                            ->inlineLabel()
-                            ->disabled(),
-                        TextInput::make('total_requested_cost_price')
-                            ->label('Total Cost Price')
-                            ->inlineLabel()
-                            ->disabled()
-                            ->prefix('PKR'),
-                        TextInput::make('total_requested_tax_amount')
-                            ->label('Total Tax Amount')
-                            ->inlineLabel()
-                            ->disabled()
-                            ->prefix('PKR'),
-                        TextInput::make('total_requested_unit_price')
-                            ->label('Total Unit Price')
-                            ->inlineLabel()
-                            ->disabled()
-                            ->prefix('PKR'),
+                Grid::make()
+                    ->components([
+                        Section::make('Request Summary')
+                            ->schema([
+                                TextInput::make('total_requested_quantity')
+                                    ->label('Total Quantity')
+                                    ->inlineLabel()
+                                    ->disabled(),
+                                TextInput::make('total_requested_supplier_price')
+                                    ->label('Total Supplier Price')
+                                    ->inlineLabel()
+                                    ->disabled()
+                                    ->prefix('PKR'),
+                                TextInput::make('total_requested_tax_amount')
+                                    ->label('Total Tax Amount')
+                                    ->inlineLabel()
+                                    ->disabled()
+                                    ->prefix('PKR'),
+                                TextInput::make('total_requested_unit_price')
+                                    ->label('Total Unit Price')
+                                    ->inlineLabel()
+                                    ->disabled()
+                                    ->prefix('PKR'),
+                            ]),
+                        Section::make('Received Summary')
+                            ->schema([
+                                TextInput::make('total_received_quantity')
+                                    ->label('Total Quantity')
+                                    ->inlineLabel()
+                                    ->disabled(),
+                                TextInput::make('total_received_cost_price')
+                                    ->label('Total Cost Price')
+                                    ->inlineLabel()
+                                    ->disabled()
+                                    ->prefix('PKR'),
+                                TextInput::make('total_received_tax_amount')
+                                    ->label('Total Tax Amount')
+                                    ->inlineLabel()
+                                    ->disabled()
+                                    ->prefix('PKR'),
+                                TextInput::make('total_received_unit_price')
+                                    ->label('Total Unit Price')
+                                    ->inlineLabel()
+                                    ->disabled()
+                                    ->prefix('PKR'),
+                            ]),
                     ])
-                    ->columnSpanFull(),
+                ->columnSpanFull(),
             ]);
     }
 
@@ -144,38 +205,39 @@ class ProcurementForm
     private static function recalcSummary(
         callable $get,
         callable $set,
-        string $itemsPath = 'procurementProducts',
-        string $totalPath = 'total_requested_cost_price'
-    ): void {
+        string   $itemsPath = 'procurementProducts',
+        string   $totalPath = 'total_requested_supplier_price'
+    ): void
+    {
         $items = $get($itemsPath) ?? [];
 
         $sumQty = 0.0;
-        $sumCost = 0.0; // quantity * cost price
+        $sumSupplier = 0.0; // quantity * supplier price
         $sumUnit = 0.0; // quantity * unit price
         $sumTax = 0.0;  // tax on unit price total
 
         foreach ($items as $item) {
-            $qty = (float) ($item['requested_quantity'] ?? 0);
-            $cost = (float) ($item['requested_cost_price'] ?? 0);
-            $unit = (float) ($item['requested_unit_price'] ?? 0);
-            $taxP = (float) ($item['requested_tax_percentage'] ?? 0);
+            $qty = (float)($item['requested_quantity'] ?? 0);
+            $supplier = (float)($item['requested_supplier_price'] ?? 0);
+            $unit = (float)($item['requested_unit_price'] ?? 0);
+            $taxP = (float)($item['requested_tax_percentage'] ?? 0);
 
             $sumQty += $qty;
-            $sumCost += $qty * $cost;
+            $sumSupplier += $qty * $supplier;
             $lineUnitTotal = $qty * $unit;
             $sumUnit += $lineUnitTotal;
             $sumTax += $lineUnitTotal * ($taxP / 100);
         }
 
         // Determine the correct prefix for setting root fields from nested repeater context
-        $prefix = str_contains($totalPath, 'total_requested_cost_price')
-            ? str_replace('total_requested_cost_price', '', $totalPath)
+        $prefix = str_contains($totalPath, 'total_requested_supplier_price')
+            ? str_replace('total_requested_supplier_price', '', $totalPath)
             : '';
 
-        $set($prefix.'total_requested_quantity', round($sumQty, 2));
-        $set($prefix.'total_requested_cost_price', round($sumCost, 2));
-        $set($prefix.'total_requested_unit_price', round($sumUnit, 2));
-        $set($prefix.'total_requested_tax_amount', round($sumTax, 2));
+        $set($prefix . 'total_requested_quantity', round($sumQty, 2));
+        $set($prefix . 'total_requested_supplier_price', round($sumSupplier, 2));
+        $set($prefix . 'total_requested_unit_price', round($sumUnit, 2));
+        $set($prefix . 'total_requested_tax_amount', round($sumTax, 2));
     }
 
     /**
@@ -184,9 +246,10 @@ class ProcurementForm
     private static function recalcLine(
         callable $get,
         callable $set,
-        string $itemsPath = '../../procurementProducts',
-        string $totalPath = '../../total_requested_cost_price'
-    ): void {
+        string   $itemsPath = '../../procurementProducts',
+        string   $totalPath = '../../total_requested_supplier_price'
+    ): void
+    {
         self::recalcSummary($get, $set, $itemsPath, $totalPath);
     }
 }

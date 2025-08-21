@@ -44,46 +44,46 @@ class DatabaseSeeder extends Seeder
 
         Artisan::call("shield:super-admin --user=$user->id --tenant=$store->id");
 
-        Store::factory()
-            ->hasAttached(User::factory()->count(10))
-            ->count(10)
-            ->create();
-
-        Category::factory()->count(100)->create();
-
-        Product::factory()->count(1000)->create();
-        Customer::factory()->count(1000)->create();
-
-        // Seed sales for each store
-        $stores = Store::all();
-        $products = Product::all();
-        $customers = Customer::pluck('id')->toArray();
-        foreach ($stores as $store) {
-            Sale::factory()
-                ->count(200)
-                ->create(['store_id' => $store->id])
-                ->each(function ($sale) use ($products) {
-                    $productCount = rand(1, 5);
-                    $selectedProducts = $products->random($productCount);
-                    $pivotData = [];
-                    foreach ($selectedProducts as $product) {
-                        $unitPrice = $product->price ?? fake()->randomFloat(2, 100, 1000);
-                        $quantity = rand(1, 5);
-                        $discount = fake()->randomFloat(2, 0, 20);
-                        $tax = fake()->randomFloat(2, 0, 15);
-                        $price = ($unitPrice * $quantity) * (1 - $discount / 100) * (1 + $tax / 100);
-                        $pivotData[$product->id] = [
-                            'unit_price' => $unitPrice,
-                            'quantity' => $quantity,
-                            'discount' => $discount,
-                            'tax' => $tax,
-                            'price' => $price,
-                        ];
-                    }
-                    $sale->products()->attach($pivotData);
-                });
-        }
-
-        Supplier::factory()->count(100)->create();
+        //        Store::factory()
+        //            ->hasAttached(User::factory()->count(10))
+        //            ->count(10)
+        //            ->create();
+        //
+        //        Category::factory()->count(100)->create();
+        //
+        //        Product::factory()->count(1000)->create();
+        //        Customer::factory()->count(1000)->create();
+        //
+        //        // Seed sales for each store
+        //        $stores = Store::all();
+        //        $products = Product::all();
+        //        $customers = Customer::pluck('id')->toArray();
+        //        foreach ($stores as $store) {
+        //            Sale::factory()
+        //                ->count(200)
+        //                ->create(['store_id' => $store->id])
+        //                ->each(function ($sale) use ($products) {
+        //                    $productCount = rand(1, 5);
+        //                    $selectedProducts = $products->random($productCount);
+        //                    $pivotData = [];
+        //                    foreach ($selectedProducts as $product) {
+        //                        $unitPrice = $product->price ?? fake()->randomFloat(2, 100, 1000);
+        //                        $quantity = rand(1, 5);
+        //                        $discount = fake()->randomFloat(2, 0, 20);
+        //                        $tax = fake()->randomFloat(2, 0, 15);
+        //                        $price = ($unitPrice * $quantity) * (1 - $discount / 100) * (1 + $tax / 100);
+        //                        $pivotData[$product->id] = [
+        //                            'unit_price' => $unitPrice,
+        //                            'quantity' => $quantity,
+        //                            'discount' => $discount,
+        //                            'tax' => $tax,
+        //                            'price' => $price,
+        //                        ];
+        //                    }
+        //                    $sale->products()->attach($pivotData);
+        //                });
+        //        }
+        //
+        //        Supplier::factory()->count(100)->create();
     }
 }

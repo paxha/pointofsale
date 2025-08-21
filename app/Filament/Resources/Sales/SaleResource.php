@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sales;
 
+use App\Filament\Resources\RelationManagers\TransactionsRelationManager;
 use App\Filament\Resources\Sales\Pages\CreateSale;
 use App\Filament\Resources\Sales\Pages\EditSale;
 use App\Filament\Resources\Sales\Pages\ListSales;
@@ -50,7 +51,7 @@ class SaleResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TransactionsRelationManager::class,
         ];
     }
 
