@@ -19,7 +19,7 @@ class ViewProcurement extends ViewRecord
             EditAction::make()
                 ->visible(fn() => $this->record->status !== ProcurementStatus::Closed),
             Action::make('close')
-                ->label('Mark as Closed')
+                ->label('Receive')
                 ->icon(Heroicon::Check)
                 ->color('success')
                 ->url(fn() => route('filament.store.resources.procurements.close', [
