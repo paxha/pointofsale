@@ -150,6 +150,12 @@ class SaleForm
                                             ->prefix('PKR')
                                             ->inlineLabel()
                                             ->disabled(),
+                                        TextInput::make('total_tax')
+                                            ->label('Total Tax')
+                                            ->numeric()
+                                            ->prefix('PKR')
+                                            ->inlineLabel()
+                                            ->disabled(),
                                         TextInput::make('discount')
                                             ->label('Discount %')
                                             ->prefix('%')
@@ -164,12 +170,6 @@ class SaleForm
                                                 // Recalculate totals applying global discount
                                                 SaleForm::recalcSummary($get, $set);
                                             }),
-                                        TextInput::make('total_tax')
-                                            ->label('Total Tax')
-                                            ->numeric()
-                                            ->prefix('PKR')
-                                            ->inlineLabel()
-                                            ->disabled(),
                                         TextInput::make('total')
                                             ->label('Total Price')
                                             ->numeric()
