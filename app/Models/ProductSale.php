@@ -13,11 +13,8 @@ class ProductSale extends Pivot
         return [
             'unit_price' => PriceCast::class,
             'tax' => PriceCast::class,
-            'price' => PriceCast::class,
-            'supplier_percentage_at_sale' => 'float',
-            'supplier_cost_price_at_sale' => PriceCast::class,
-            'customer_price' => PriceCast::class,
-            'customer_discount' => PriceCast::class,
+            'discount' => 'float',
+            'supplier_price' => PriceCast::class,
         ];
     }
 

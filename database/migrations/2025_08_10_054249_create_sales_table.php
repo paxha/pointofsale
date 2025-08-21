@@ -20,13 +20,12 @@ return new class extends Migration {
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Customer::class)->nullable()->constrained()->nullOnDelete();
-            $table->integer('subtotal')->nullable();
-            $table->integer('tax')->nullable();
-            $table->integer('discount')->nullable()->comment('Discount in percent');
+            $table->integer('subtotal')->nullable()->comment('Subtotal before tax and discount. Calculated from product_sale');
+            $table->integer('tax')->nullable()->comment('Total tax amount. Calculated from product_sale');
+            $table->float('discount')->nullable()->comment('Discount on subtotal');
             $table->integer('total')->nullable();
             $table->string('status')->default(SaleStatus::Completed);
             $table->string('payment_status')->default(SalePaymentStatus::default());
-            $table->integer('total_supplier_price')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
@@ -37,8 +36,7 @@ return new class extends Migration {
             $table->integer('quantity')->default(1);
             $table->integer('unit_price');
             $table->integer('tax')->nullable();
-            $table->integer('discount')->nullable()->comment('Discount in percent');
-            $table->integer('supplier_percentage')->nullable();
+            $table->float('discount')->nullable()->comment('Discount in percent');
             $table->integer('supplier_price')->nullable();
         });
     }

@@ -42,7 +42,7 @@ class SaleForm
                                         ->live()
                                         ->afterStateUpdated(function ($state, $set, $get) {
                                             $product = Product::whereSku($state)->first();
-                                            if (! $product) {
+                                            if (!$product) {
                                                 Notification::make()
                                                     ->title('Product not found')
                                                     ->danger()
@@ -65,20 +65,20 @@ class SaleForm
                                         ->reactive()
                                         ->getSearchResultsUsing(function (string $search): array {
                                             return Product::query()
-                                                ->where('name', 'like', "%{$search}%")
-                                                ->orWhere('sku', 'like', "%{$search}%")
-                                                ->orWhere('barcode', 'like', "%{$search}%")
+                                                ->where('name', 'like', "%$search%")
+                                                ->orWhere('sku', 'like', "%$search%")
+                                                ->orWhere('barcode', 'like', "%$search%")
                                                 ->limit(50)
                                                 ->pluck('name', 'id')
                                                 ->all();
                                         })
                                         ->afterStateUpdated(function ($state, $set, $get) {
-                                            if (! $state) {
+                                            if (!$state) {
                                                 return;
                                             }
 
                                             $product = Product::find($state);
-                                            if (! $product) {
+                                            if (!$product) {
                                                 Notification::make()
                                                     ->title('Product not found')
                                                     ->danger()
@@ -110,7 +110,7 @@ class SaleForm
                                                     ->width('100px'),
                                                 Repeater\TableColumn::make('Disc. %')
                                                     ->width('100px'),
-                                                Repeater\TableColumn::make('Price')
+                                                Repeater\TableColumn::make('Total')
                                                     ->width('100px'),
                                             ])
                                             ->schema([
@@ -132,7 +132,7 @@ class SaleForm
                                                     ->afterStateUpdated(function ($state, $set, $get) {
                                                         SaleForm::recalcLine($get, $set);
                                                     }),
-                                                TextInput::make('price')
+                                                TextInput::make('total')
                                                     ->disabled(),
                                             ])
                                             ->addable(false)
@@ -159,7 +159,7 @@ class SaleForm
                                             ->live(debounce: 1000)
                                             ->inlineLabel()
                                             ->afterStateUpdated(function ($state, $set, $get) {
-                                                $discount = min(100, max(0, (float) $state));
+                                                $discount = min(100, max(0, (float)$state));
                                                 $set('discount', $discount);
                                                 // Recalculate totals applying global discount
                                                 SaleForm::recalcSummary($get, $set);
@@ -184,8 +184,8 @@ class SaleForm
                                             ->relationship('customer', 'name')
                                             ->searchable(['name', 'phone'])
                                             ->preload()
-                                            ->getOptionLabelFromRecordUsing(fn (Model $record) => "$record->name - $record->phone")
-                                            ->createOptionForm(fn (Schema $schema) => CustomerForm::configure($schema))
+                                            ->getOptionLabelFromRecordUsing(fn(Model $record) => "$record->name - $record->phone")
+                                            ->createOptionForm(fn(Schema $schema) => CustomerForm::configure($schema))
                                             ->createOptionModalHeading('New Customer'),
                                     ])
                                     ->columnSpanFull(),
@@ -222,7 +222,7 @@ class SaleForm
 
                                                 return redirect()->to(SaleResource::getUrl('create'));
                                             }
-                                            if (! $subtotal || ! $total) {
+                                            if (!$subtotal || !$total) {
                                                 Notification::make()
                                                     ->title('Missing required sale information.')
                                                     ->danger()
@@ -233,24 +233,27 @@ class SaleForm
 
                                             try {
                                                 $sale = DB::transaction(function () use ($state, $products) {
+                                                    // Set paid_at if payment_status is 'paid'
+                                                    $paidAt = ($state['payment_status'] ?? null) === SalePaymentStatus::Paid ? now() : null;
+
                                                     $sale = Sale::create([
                                                         'customer_id' => $state['customer_id'] ?? null,
-                                                        'subtotal' => $state['subtotal'] ?? 0,
-                                                        'discount' => $state['discount'] ?? 0,
-                                                        'tax' => $state['total_tax'] ?? 0,
-                                                        'total' => $state['total'] ?? 0,
+                                                        'subtotal' => $state['subtotal'],
+                                                        'tax' => $state['total_tax'],
+                                                        'discount' => $state['discount'],
+                                                        'total' => $state['total'],
                                                         'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
                                                         'status' => $state['status'] ?? SaleStatus::default(),
+                                                        'paid_at' => $paidAt,
                                                     ]);
+
                                                     foreach ($products as $product) {
-                                                        $sale->products()->attach([
-                                                            'product_id' => $product['product_id'],
-                                                        ], [
-                                                            'unit_price' => $product['unit_price'],
+                                                        $sale->products()->attach($product['product_id'], [
                                                             'quantity' => $product['quantity'],
-                                                            'price' => $product['price'],
+                                                            'unit_price' => $product['unit_price'],
                                                             'tax' => $product['tax'],
                                                             'discount' => $product['discount'],
+                                                            'supplier_price' => $product['supplier_price'],
                                                         ]);
                                                     }
 
@@ -258,7 +261,7 @@ class SaleForm
                                                 });
                                             } catch (Throwable $e) {
                                                 Notification::make()
-                                                    ->title('Failed to create sale: '.$e->getMessage())
+                                                    ->title('Failed to create sale: ' . $e->getMessage())
                                                     ->danger()
                                                     ->send();
 
@@ -294,29 +297,36 @@ class SaleForm
     private static function recalcSummary(
         callable $get,
         callable $set,
-        string $productsPath = 'products',
-        string $subtotalPath = 'subtotal',
-        string $totalPath = 'total',
-        string $totalTaxPath = 'total_tax',
-        string $discountPath = 'discount',
-    ): void {
-        $products = $get($productsPath);
+        string   $productsPath = 'products',
+        string   $subtotalPath = 'subtotal',
+        string   $totalPath = 'total',
+        string   $totalTaxPath = 'total_tax',
+        string   $discountPath = 'discount',
+    ): void
+    {
+        $products = $get($productsPath) ?? [];
 
+        // Subtotal: sum of all (unit_price * quantity * (1 - line discount %))
         $subtotal = array_sum(array_map(static function ($item) {
-            return $item['price'];
+            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
+            $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : 0;
+            $discount = isset($item['discount']) ? min(100, max(0, (float)$item['discount'])) : 0;
+            return $unitPrice * $quantity * (1 - ($discount / 100));
         }, $products));
-
         $set($subtotalPath, round($subtotal, 2));
 
+        // Total tax: sum of all (tax * quantity)
         $totalTax = array_sum(array_map(static function ($item) {
-            return $item['tax'];
+            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
+            $tax = isset($item['tax']) ? (float)$item['tax'] : 0;
+            return $tax * $quantity;
         }, $products));
-
-        $discountPercent = min(100, max(0, $get($discountPath)));
-        $total = $subtotal * (1 - ($discountPercent / 100));
-
-        $set($totalPath, round($total, 2));
         $set($totalTaxPath, round($totalTax, 2));
+
+        // Sale-level discount (applied to subtotal after line discounts)
+        $discountPercent = min(100, max(0, (float)$get($discountPath)));
+        $total = $subtotal * (1 - ($discountPercent / 100));
+        $set($totalPath, round($total, 2));
     }
 
     /**
@@ -326,14 +336,15 @@ class SaleForm
     private static function recalcLine(
         callable $get,
         callable $set,
-        string $productsPath = '../../products',
-        string $subtotalPath = '../../subtotal',
-        string $totalPath = '../../total',
-        string $totalTaxPath = '../../total_tax',
-        string $discountPath = '../../discount',
-    ): void {
-        $quantity = max(1, (int) ($get('quantity') ?: 1));
-        $discount = min(100, max(0, (int) ($get('discount') ?? 0)));
+        string   $productsPath = '../../products',
+        string   $subtotalPath = '../../subtotal',
+        string   $totalPath = '../../total',
+        string   $totalTaxPath = '../../total_tax',
+        string   $discountPath = '../../discount',
+    ): void
+    {
+        $quantity = max(1, (int)($get('quantity') ?: 1));
+        $discount = min(100, max(0, (int)($get('discount') ?? 0)));
 
         $set('quantity', $quantity);
         $set('discount', $discount);
@@ -342,8 +353,7 @@ class SaleForm
 
         $lineTotal = $unitPrice * $quantity * (1 - ($discount / 100));
 
-        $set('price', round($lineTotal, 2));
-        $set('tax', round($get('unit_tax') * $quantity, 2));
+        $set('total', round($lineTotal, 2));
 
         self::recalcSummary($get, $set, $productsPath, $subtotalPath, $totalPath, $totalTaxPath, $discountPath);
     }
@@ -359,8 +369,7 @@ class SaleForm
         foreach ($products as $key => &$item) {
             if ($item['product_id'] == $product->id) {
                 $item['quantity'] += 1;
-                $item['price'] = $item['unit_price'] * $item['quantity'] * (1 - ($item['discount'] / 100));
-                $item['tax'] = $item['unit_tax'] * $item['quantity'];
+                $item['total'] = $item['unit_price'] * $item['quantity'] * (1 - ($item['discount'] / 100));
 
                 unset($products[$key]);
                 array_unshift($products, $item);
@@ -370,16 +379,16 @@ class SaleForm
         }
         unset($item);
 
-        if (! $found) {
+        if (!$found) {
             array_unshift($products, [
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'quantity' => 1,
-                'discount' => 0,
-                'price' => $product->price,
                 'unit_price' => $product->price,
                 'tax' => $product->tax_amount,
-                'unit_tax' => $product->tax_amount,
+                'discount' => $product->sale_percentage,
+                'supplier_price' => $product->supplier_price,
+                'total' => $product->price * (1 - $product->sale_percentage / 100),
             ]);
         }
 

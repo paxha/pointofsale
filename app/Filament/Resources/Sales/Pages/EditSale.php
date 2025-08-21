@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sales\Pages;
 
+use App\Enums\SalePaymentStatus;
 use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
@@ -65,6 +66,35 @@ class EditSale extends EditRecord
     protected function handleRecordUpdate($record, array $data): Model
     {
         return DB::transaction(function () use ($record, $data) {
+            $sale = $this->getRecord();
+            $sale->loadMissing('products');
+
+            $products = [];
+            foreach ($sale->products as $product) {
+                $pivot = $product->pivot;
+                $quantity = (int) ($pivot->quantity ?? 1);
+                $unitTax = $quantity > 0 ? (float) ($pivot->tax / $quantity) : (float) $product->tax_amount;
+
+                $products[] = [
+                    'product_id' => $product->id,
+                    'name' => $product->name,
+                    'quantity' => $quantity,
+                    'discount' => (float) ($pivot->discount ?? 0),
+                    'price' => (float) ($pivot->price ?? 0),
+                    'unit_price' => (float) ($pivot->unit_price ?? $product->price),
+                    'tax' => (float) ($pivot->tax ?? 0),
+                    'unit_tax' => $unitTax,
+                ];
+            }
+
+            // Calculate total_supplier_price
+            $totalSupplierPrice = collect($products)->sum(function ($item) {
+                return ($item['supplier_price'] ?? 0) * ($item['quantity'] ?? 1);
+            });
+
+            // Set paid_at if payment_status is 'paid'
+            $paidAt = ($data['payment_status'] ?? $record->payment_status) === SalePaymentStatus::Paid ? now() : null;
+
             // Update sale fields
             $record->update([
                 'customer_id' => $data['customer_id'] ?? null,
@@ -74,10 +104,11 @@ class EditSale extends EditRecord
                 'total' => $data['total'] ?? 0,
                 'payment_status' => $data['payment_status'] ?? $record->payment_status,
                 'status' => $data['status'] ?? $record->status,
+                'total_supplier_price' => $totalSupplierPrice,
+                'paid_at' => $paidAt,
             ]);
 
             // Sync products pivot
-            $products = $data['products'] ?? [];
             $syncData = [];
             foreach ($products as $item) {
                 if (! isset($item['product_id'])) {
@@ -91,6 +122,7 @@ class EditSale extends EditRecord
                 $linePrice = (float) ($item['price'] ?? ($unitPrice * $quantity * (1 - ($discount / 100))));
                 $unitTax = (float) ($item['unit_tax'] ?? 0);
                 $lineTax = (float) ($item['tax'] ?? ($unitTax * $quantity));
+                $supplierPrice = (float) ($item['supplier_price'] ?? 0);
 
                 $syncData[$productId] = [
                     'unit_price' => round($unitPrice, 2),
@@ -98,6 +130,7 @@ class EditSale extends EditRecord
                     'price' => round($linePrice, 2),
                     'tax' => round($lineTax, 2),
                     'discount' => $discount,
+                    'supplier_price' => $supplierPrice,
                 ];
             }
 

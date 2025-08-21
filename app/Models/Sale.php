@@ -17,11 +17,12 @@ class Sale extends Model
     protected $fillable = [
         'customer_id',
         'subtotal',
-        'discount',
         'tax',
+        'discount',
         'total',
-        'payment_status',
         'status',
+        'payment_status',
+        'paid_at',
     ];
 
     protected function casts(): array
@@ -29,9 +30,11 @@ class Sale extends Model
         return [
             'subtotal' => PriceCast::class,
             'tax' => PriceCast::class,
+            'discount' => 'float',
             'total' => PriceCast::class,
-            'payment_status' => SalePaymentStatus::class,
             'status' => SaleStatus::class,
+            'payment_status' => SalePaymentStatus::class,
+            'paid_at' => 'datetime',
         ];
     }
 
@@ -44,7 +47,7 @@ class Sale extends Model
     {
         return $this->belongsToMany(Product::class)
             ->using(ProductSale::class)
-            ->withPivot('unit_price', 'quantity', 'tax', 'price', 'discount');
+            ->withPivot('quantity', 'unit_price', 'tax', 'discount', 'supplier_price');
     }
 
     public function customer(): BelongsTo
