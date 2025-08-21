@@ -63,62 +63,8 @@ class EditSale extends EditRecord
         $data['total_tax'] = round($totalTax, 2);
         $data['discount'] = $discountPercent;
         $data['total'] = round($total, 2);
+        $data['sale_id'] = $sale->id;
 
         return $data;
-    }
-
-    protected function handleRecordUpdate($record, array $data): Model
-    {
-        return DB::transaction(function () use ($record, $data) {
-            // Use products from form data, not from the database
-            $products = $data['products'] ?? [];
-
-            // Set paid_at if payment_status is 'paid'
-            $paidAt = ($data['payment_status'] ?? $record->payment_status) === SalePaymentStatus::Paid ? now() : null;
-
-            // Update sale fields
-            $record->update([
-                'customer_id' => $data['customer_id'] ?? null,
-                'subtotal' => $data['subtotal'] ?? 0,
-                'discount' => $data['discount'] ?? 0,
-                'tax' => $data['total_tax'] ?? 0,
-                'total' => $data['total'] ?? 0,
-                'status' => $data['status'] ?? $record->status,
-                'payment_status' => $data['payment_status'] ?? $record->payment_status,
-                'paid_at' => $paidAt,
-            ]);
-
-            // Sync products pivot
-            $syncData = [];
-            foreach ($products as $item) {
-                if (!isset($item['product_id'])) {
-                    continue;
-                }
-
-                $productId = (int)$item['product_id'];
-                $quantity = max(1, (int)($item['quantity'] ?? 1));
-                $discount = min(100, max(0, (float)($item['discount'] ?? 0)));
-                $unitPrice = (float)($item['unit_price'] ?? 0);
-                $lineTax = (float)($item['tax'] ?? 0);
-                $supplierPrice = (float)($item['supplier_price'] ?? 0);
-
-                $syncData[$productId] = [
-                    'quantity' => $quantity,
-                    'unit_price' => round($unitPrice, 2),
-                    'tax' => round($lineTax, 2),
-                    'discount' => $discount,
-                    'supplier_price' => $supplierPrice,
-                ];
-            }
-
-            $record->products()->sync($syncData);
-
-            Notification::make()
-                ->title('Sale updated successfully')
-                ->success()
-                ->send();
-
-            return $record;
-        });
     }
 }
