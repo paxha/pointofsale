@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\SaleStatus;
 use App\Models\Sale;
 
 class SaleObserver
@@ -18,18 +19,40 @@ class SaleObserver
                 'note' => 'Sale: customer credit',
             ])->save();
         }
+        // Do NOT update stock here; products are not yet attached
+        // Create transaction for the sale itself so it appears in sale detail page
+        $transaction = $sale->transactions()->make();
+        $transaction->forceFill([
+            'store_id' => $sale->store_id,
+            'type' => 'sale_record',
+            'amount' => $sale->total,
+            'note' => 'Sale record transaction',
+        ])->save();
+    }
 
-        // For each sold product, create stock-out transaction and update stock
+    public function updated(Sale $sale): void
+    {
+        $originalStatus = $sale->getOriginal('status');
+        $newStatus = $sale->status;
+        $statusJustCompleted = $newStatus === SaleStatus::Completed && $originalStatus !== SaleStatus::Completed;
+
+        // Only act if status just became Completed
+        if ($statusJustCompleted) {
+            $this->handleStockOnCompleted($sale);
+        }
+    }
+
+    private function handleStockOnCompleted(Sale $sale): void
+    {
+        $sale->load('products');
         foreach ($sale->products as $product) {
             $pivot = $product->pivot;
+            // Only update stock if no transaction exists for this sale/product
+            $transactionExists = $product->transactions()->where('sale_id', $sale->id)->exists();
+            if ($transactionExists) {
+                continue;
+            }
             if ($pivot->quantity > 0) {
-                // Save supplier/customer details in pivot
-                $product->sales()->updateExistingPivot($sale->id, [
-                    'supplier_percentage_at_sale' => $product->supplier_percentage,
-                    'supplier_cost_price_at_sale' => $product->cost_price,
-                    'customer_price' => $pivot->unit_price,
-                    'customer_discount' => $pivot->discount,
-                ]);
                 $product->transactions()->create([
                     'store_id' => $sale->store_id,
                     'type' => 'product_stock_out',
@@ -43,23 +66,9 @@ class SaleObserver
                         'customer_price' => $pivot->unit_price,
                         'customer_discount' => $pivot->discount,
                     ],
-                    'supplier_percentage' => $product->supplier_percentage,
-                    'supplier_cost_price' => $product->cost_price,
-                    'customer_price' => $pivot->unit_price,
-                    'customer_discount' => $pivot->discount,
-                    'sale_id' => $sale->id,
-                    'product_id' => $product->id,
                 ]);
-                // Update product stock
                 $product->decrement('stock', $pivot->quantity);
             } elseif ($pivot->quantity < 0) {
-                // Save supplier/customer details in pivot
-                $product->sales()->updateExistingPivot($sale->id, [
-                    'supplier_percentage_at_sale' => $product->supplier_percentage,
-                    'supplier_cost_price_at_sale' => $product->cost_price,
-                    'customer_price' => $pivot->unit_price,
-                    'customer_discount' => $pivot->discount,
-                ]);
                 $product->transactions()->create([
                     'store_id' => $sale->store_id,
                     'type' => 'product_stock_in',
@@ -73,24 +82,9 @@ class SaleObserver
                         'customer_price' => $pivot->unit_price,
                         'customer_discount' => $pivot->discount,
                     ],
-                    'supplier_percentage' => $product->supplier_percentage,
-                    'supplier_cost_price' => $product->cost_price,
-                    'customer_price' => $pivot->unit_price,
-                    'customer_discount' => $pivot->discount,
-                    'sale_id' => $sale->id,
-                    'product_id' => $product->id,
                 ]);
-                // Update product stock
                 $product->increment('stock', abs($pivot->quantity));
             }
         }
-
-        // Create transaction for the sale itself so it appears in sale detail page
-        $sale->transactions()->create([
-            'store_id' => $sale->store_id,
-            'type' => 'sale_record',
-            'amount' => $sale->total,
-            'note' => 'Sale record transaction',
-        ]);
     }
 }

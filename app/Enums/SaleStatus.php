@@ -13,9 +13,6 @@ enum SaleStatus: string implements HasColor, HasDescription, HasIcon, HasLabel
 {
     case Pending = 'pending';
     case Completed = 'completed';
-    case Cancelled = 'cancelled';
-    case Returned = 'returned';
-    case Refunded = 'refunded';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -27,9 +24,6 @@ enum SaleStatus: string implements HasColor, HasDescription, HasIcon, HasLabel
         return match ($this) {
             self::Pending => 'warning',
             self::Completed => 'success',
-            self::Cancelled => 'danger',
-            self::Returned => 'info',
-            self::Refunded => 'info',
         };
     }
 
@@ -38,9 +32,6 @@ enum SaleStatus: string implements HasColor, HasDescription, HasIcon, HasLabel
         return match ($this) {
             self::Pending => 'heroicon-s-clock',
             self::Completed => 'heroicon-s-check-badge',
-            self::Cancelled => 'heroicon-s-no-symbol',
-            self::Returned => 'heroicon-s-arrow-uturn-left',
-            self::Refunded => 'heroicon-s-banknotes',
         };
     }
 
@@ -49,9 +40,6 @@ enum SaleStatus: string implements HasColor, HasDescription, HasIcon, HasLabel
         return match ($this) {
             self::Pending => 'Order is awaiting processing.',
             self::Completed => 'Order has been fulfilled.',
-            self::Cancelled => 'Order has been cancelled.',
-            self::Returned => 'Order was returned.',
-            self::Refunded => 'Order was refunded.',
         };
     }
 
