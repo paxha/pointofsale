@@ -71,7 +71,7 @@ class ProcurementForm
                                         $set('requested_supplier_percentage', $product->supplier_percentage ?? 0);
                                         $set('requested_unit_price', $product->price ?? 0);
                                         $set('requested_tax_percentage', $product->tax_percentage ?? 0);
-                                        $set('requested_tax_amount', ($product->price ?? 0) * ($get('requested_quantity') ?? 1) * (($product->tax_percentage ?? 0) / 100));
+                                        $set('requested_tax_amount', ($product->price ?? 0) * (($product->tax_percentage ?? 0) / 100));
                                         self::recalcLine($get, $set);
                                     })
                                     ->columnSpan(2),
@@ -83,7 +83,7 @@ class ProcurementForm
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
                                         $unitPrice = (float)$get('requested_unit_price');
                                         $taxPercent = (float)$get('requested_tax_percentage');
-                                        $taxAmount = $unitPrice * ($state ?? 1) * ($taxPercent / 100);
+                                        $taxAmount = $unitPrice * ($taxPercent / 100);
                                         $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
                                     })
@@ -92,27 +92,65 @@ class ProcurementForm
                                     ->numeric()
                                     ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
-                                        $quantity = (float)$get('requested_quantity');
+                                        $unitPrice = (float)($state ?? 0);
+
+                                        // --- Supplier (Cost) Calculation ---
+                                        $supplierPercent = (float)$get('requested_supplier_percentage');
+                                        $supplierPrice = (float)$get('requested_supplier_price');
+                                        if ($supplierPercent > 0) {
+                                            $supplierPrice = $unitPrice - ($unitPrice * $supplierPercent / 100);
+                                            $set('requested_supplier_price', round($supplierPrice, 2));
+                                        } elseif ($supplierPrice > 0 && $unitPrice > 0) {
+                                            $supplierPercent = (($unitPrice - $supplierPrice) / $unitPrice) * 100;
+                                            $set('requested_supplier_percentage', round($supplierPercent, 2));
+                                        } else {
+                                            $set('requested_supplier_percentage', 0);
+                                            $set('requested_supplier_price', 0);
+                                        }
+
+                                        // --- Tax Calculation ---
                                         $taxPercent = (float)$get('requested_tax_percentage');
-                                        $taxAmount = ($state ?? 0) * $quantity * ($taxPercent / 100);
-                                        $set('requested_tax_amount', $taxAmount);
+                                        $taxAmount = (float)$get('requested_tax_amount');
+                                        if ($taxPercent > 0) {
+                                            $taxAmount = $unitPrice * ($taxPercent / 100);
+                                            $set('requested_tax_amount', round($taxAmount, 2));
+                                        } elseif ($taxAmount > 0 && $unitPrice > 0) {
+                                            $taxPercent = ($taxAmount / $unitPrice) * 100;
+                                            $set('requested_tax_percentage', round($taxPercent, 2));
+                                        } else {
+                                            $set('requested_tax_percentage', 0);
+                                            $set('requested_tax_amount', 0);
+                                        }
+
                                         self::recalcLine($get, $set);
                                     })
+                                    ->prefix('PKR')
                                     ->label('Unit Price'),
                                 TextInput::make('requested_tax_percentage')
                                     ->numeric()
                                     ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
-                                        $quantity = (float)$get('requested_quantity');
                                         $unitPrice = (float)$get('requested_unit_price');
-                                        $taxAmount = $unitPrice * $quantity * (($state ?? 0) / 100);
+                                        $taxAmount = $unitPrice * (($state ?? 0) / 100);
                                         $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
                                     })
+                                    ->prefix('%')
                                     ->label('Tax %'),
                                 TextInput::make('requested_tax_amount')
                                     ->numeric()
-                                    ->readOnly()
+                                    ->prefix('PKR')
+                                    ->live(debounce: 1000)
+                                    ->afterStateUpdated(function (mixed $state, $set, $get): void {
+                                        $unitPrice = (float) $get('requested_unit_price');
+                                        if ($unitPrice > 0) {
+                                            $taxPercent = ($state / $unitPrice) * 100;
+                                            $set('requested_tax_percentage', round($taxPercent, 2));
+                                        } else {
+                                            $set('requested_tax_percentage', 0);
+                                        }
+                                        self::recalcLine($get, $set);
+                                    })
                                     ->label('Tax Amount'),
                                 TextInput::make('requested_supplier_percentage')
                                     ->numeric()
@@ -127,6 +165,7 @@ class ProcurementForm
                                         }
                                         self::recalcLine($get, $set);
                                     })
+                                    ->prefix('%')
                                     ->label('Supplier %'),
                                 TextInput::make('requested_supplier_price')
                                     ->numeric()
@@ -141,6 +180,7 @@ class ProcurementForm
                                         }
                                         self::recalcLine($get, $set);
                                     })
+                                    ->prefix('PKR')
                                     ->label('Supplier Price'),
                             ])
                             ->addActionLabel('Add product')
@@ -156,8 +196,8 @@ class ProcurementForm
                                     ->label('Total Quantity')
                                     ->inlineLabel()
                                     ->disabled(),
-                                TextInput::make('total_requested_supplier_price')
-                                    ->label('Total Supplier Price')
+                                TextInput::make('total_requested_unit_price')
+                                    ->label('Total Unit Price')
                                     ->inlineLabel()
                                     ->disabled()
                                     ->prefix('PKR'),
@@ -166,8 +206,8 @@ class ProcurementForm
                                     ->inlineLabel()
                                     ->disabled()
                                     ->prefix('PKR'),
-                                TextInput::make('total_requested_unit_price')
-                                    ->label('Total Unit Price')
+                                TextInput::make('total_requested_supplier_price')
+                                    ->label('Total Supplier Price')
                                     ->inlineLabel()
                                     ->disabled()
                                     ->prefix('PKR'),
@@ -178,8 +218,8 @@ class ProcurementForm
                                     ->label('Total Quantity')
                                     ->inlineLabel()
                                     ->disabled(),
-                                TextInput::make('total_received_cost_price')
-                                    ->label('Total Cost Price')
+                                TextInput::make('total_received_unit_price')
+                                    ->label('Total Unit Price')
                                     ->inlineLabel()
                                     ->disabled()
                                     ->prefix('PKR'),
@@ -188,8 +228,8 @@ class ProcurementForm
                                     ->inlineLabel()
                                     ->disabled()
                                     ->prefix('PKR'),
-                                TextInput::make('total_received_unit_price')
-                                    ->label('Total Unit Price')
+                                TextInput::make('total_received_cost_price')
+                                    ->label('Total Cost Price')
                                     ->inlineLabel()
                                     ->disabled()
                                     ->prefix('PKR'),

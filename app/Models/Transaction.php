@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Transaction extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'store_id',
         'transactionable_type',
