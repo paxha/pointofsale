@@ -199,109 +199,20 @@ class SaleForm
                                             ->default(SalePaymentStatus::default())
                                             ->searchable()
                                             ->preload(),
-                                        Select::make('status')
-                                            ->label('Sale Status')
-                                            ->options(SaleStatus::class)
-                                            ->default(SaleStatus::default())
-                                            ->searchable()
-                                            ->preload(),
                                     ])
                                     ->columnSpanFull(),
                                 Flex::make([
-                                    Action::make('checkout')
-                                        ->color('info')
-                                        ->label(fn ($state) => !empty($state['sale_id']) ? 'Update' : 'Checkout')
+                                    Action::make('complete')
+                                        ->color('primary')
+                                        ->label('Complete')
                                         ->action(function ($state) {
-                                            $products = $state['products'] ?? [];
-                                            $subtotal = $state['subtotal'] ?? null;
-                                            $total = $state['total'] ?? null;
-
-                                            // Validation
-                                            if (empty($products)) {
-                                                Notification::make()
-                                                    ->title('Please add products to the cart.')
-                                                    ->danger()
-                                                    ->send();
-
-                                                return redirect()->to(SaleResource::getUrl('create'));
-                                            }
-                                            if (!$subtotal || !$total) {
-                                                Notification::make()
-                                                    ->title('Missing required sale information.')
-                                                    ->danger()
-                                                    ->send();
-
-                                                return redirect()->to(SaleResource::getUrl('create'));
-                                            }
-
-                                            try {
-                                                $sale = DB::transaction(function () use ($state, $products) {
-                                                    $paidAt = ($state['payment_status'] ?? null) === SalePaymentStatus::Paid ? now() : null;
-                                                    if (!empty($state['sale_id'])) {
-                                                        // Update existing sale
-                                                        $sale = Sale::findOrFail($state['sale_id']);
-                                                        $sale->update([
-                                                            'customer_id' => $state['customer_id'] ?? null,
-                                                            'subtotal' => $state['subtotal'],
-                                                            'tax' => $state['total_tax'],
-                                                            'discount' => $state['discount'],
-                                                            'total' => $state['total'],
-                                                            'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
-                                                            'status' => $state['status'] ?? SaleStatus::default(),
-                                                            'paid_at' => $paidAt,
-                                                        ]);
-                                                        // Sync products
-                                                        $syncData = [];
-                                                        foreach ($products as $product) {
-                                                            $syncData[$product['product_id']] = [
-                                                                'quantity' => $product['quantity'],
-                                                                'unit_price' => $product['unit_price'],
-                                                                'tax' => $product['tax'],
-                                                                'discount' => $product['discount'],
-                                                                'supplier_price' => $product['supplier_price'],
-                                                            ];
-                                                        }
-                                                        $sale->products()->sync($syncData);
-                                                    } else {
-                                                        // Create new sale
-                                                        $sale = Sale::create([
-                                                            'customer_id' => $state['customer_id'] ?? null,
-                                                            'subtotal' => $state['subtotal'],
-                                                            'tax' => $state['total_tax'],
-                                                            'discount' => $state['discount'],
-                                                            'total' => $state['total'],
-                                                            'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
-                                                            'status' => $state['status'] ?? SaleStatus::default(),
-                                                            'paid_at' => $paidAt,
-                                                        ]);
-                                                        foreach ($products as $product) {
-                                                            $sale->products()->attach($product['product_id'], [
-                                                                'quantity' => $product['quantity'],
-                                                                'unit_price' => $product['unit_price'],
-                                                                'tax' => $product['tax'],
-                                                                'discount' => $product['discount'],
-                                                                'supplier_price' => $product['supplier_price'],
-                                                            ]);
-                                                        }
-                                                    }
-                                                    return $sale;
-                                                });
-                                            } catch (Throwable $e) {
-                                                Notification::make()
-                                                    ->title(($state['sale_id'] ? 'Failed to update sale: ' : 'Failed to create sale: ') . $e->getMessage())
-                                                    ->danger()
-                                                    ->send();
-                                                return redirect()->to($state['sale_id'] ? SaleResource::getUrl('edit', ['record' => $state['sale_id']]) : SaleResource::getUrl('create'));
-                                            }
-                                            Notification::make()
-                                                ->title($state['sale_id'] ? 'Sale updated successfully' : 'Sale created successfully')
-                                                ->success()
-                                                ->send();
-
-                                            return redirect()->route('sales.receipt', [
-                                                'sale' => $sale->id,
-                                                'next' => SaleResource::getUrl('create'),
-                                            ]);
+                                            return app(static::class)->handleCheckout($state, SaleStatus::Completed);
+                                        }),
+                                    Action::make('pending')
+                                        ->color('warning')
+                                        ->label('Pending')
+                                        ->action(function ($state) {
+                                            return app(static::class)->handleCheckout($state, SaleStatus::Pending);
                                         }),
                                     Action::make('cancel')
                                         ->color('gray')
@@ -419,5 +330,107 @@ class SaleForm
 
         $set('products', array_values($products));
         self::recalcSummary($get, $set);
+    }
+
+    /**
+     * Handle the checkout logic, including sale creation and update.
+     */
+    public static function handleCheckout($state, $status)
+    {
+        $products = $state['products'] ?? [];
+        $subtotal = $state['subtotal'] ?? null;
+        $total = $state['total'] ?? null;
+
+        // Validation
+        if (empty($products)) {
+            Notification::make()
+                ->title('Please add products to the cart.')
+                ->danger()
+                ->send();
+
+            return redirect()->to(SaleResource::getUrl('create'));
+        }
+        if (!$subtotal || !$total) {
+            Notification::make()
+                ->title('Missing required sale information.')
+                ->danger()
+                ->send();
+
+            return redirect()->to(SaleResource::getUrl('create'));
+        }
+
+        try {
+            $sale = DB::transaction(function () use ($state, $products, $status) {
+                $paidAt = ($state['payment_status'] ?? null) === SalePaymentStatus::Paid ? now() : null;
+                if (!empty($state['sale_id'])) {
+                    // Update existing sale
+                    $sale = Sale::findOrFail($state['sale_id']);
+                    $sale->update([
+                        'customer_id' => $state['customer_id'] ?? null,
+                        'subtotal' => $state['subtotal'],
+                        'tax' => $state['total_tax'],
+                        'discount' => $state['discount'],
+                        'total' => $state['total'],
+                        'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
+                        'status' => $status,
+                        'paid_at' => $paidAt,
+                    ]);
+                    // Sync products
+                    $syncData = [];
+                    foreach ($products as $product) {
+                        $syncData[$product['product_id']] = [
+                            'quantity' => $product['quantity'],
+                            'unit_price' => $product['unit_price'],
+                            'tax' => $product['tax'],
+                            'discount' => $product['discount'],
+                            'supplier_price' => $product['supplier_price'],
+                        ];
+                    }
+                    $sale->products()->sync($syncData);
+                } else {
+                    // Create new sale
+                    $sale = Sale::create([
+                        'customer_id' => $state['customer_id'] ?? null,
+                        'subtotal' => $state['subtotal'],
+                        'tax' => $state['total_tax'],
+                        'discount' => $state['discount'],
+                        'total' => $state['total'],
+                        'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
+                        'status' => $status,
+                        'paid_at' => $paidAt,
+                    ]);
+                    foreach ($products as $product) {
+                        $sale->products()->attach($product['product_id'], [
+                            'quantity' => $product['quantity'],
+                            'unit_price' => $product['unit_price'],
+                            'tax' => $product['tax'],
+                            'discount' => $product['discount'],
+                            'supplier_price' => $product['supplier_price'],
+                        ]);
+                    }
+                }
+                return $sale;
+            });
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title(($state['sale_id'] ? 'Failed to update sale: ' : 'Failed to create sale: ') . $e->getMessage())
+                ->danger()
+                ->send();
+            return redirect()->to($state['sale_id'] ? SaleResource::getUrl('edit', ['record' => $state['sale_id']]) : SaleResource::getUrl('create'));
+        }
+        Notification::make()
+            ->title($state['sale_id'] ? 'Sale updated successfully' : 'Sale created successfully')
+            ->success()
+            ->send();
+
+        // Only redirect to receipt if status is Completed
+        if ($status === SaleStatus::Completed) {
+            return redirect()->route('sales.receipt', [
+                'sale' => $sale->id,
+                'next' => SaleResource::getUrl('create'),
+            ]);
+        }
+        // Otherwise, just go to create page
+        return redirect()->to(SaleResource::getUrl('create'));
     }
 }

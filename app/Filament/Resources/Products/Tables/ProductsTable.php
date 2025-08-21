@@ -23,13 +23,11 @@ class ProductsTable
     {
         return $table
             ->columns([
-                TextColumn::make('category.name')
-                    ->sortable()
-                    ->searchable()
-                    ->hiddenOn(ProductsRelationManager::class),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('price')
+                TextColumn::make('description')
+                    ->searchable(),
+                TextColumn::make('sale_price')
                     ->money('PKR', decimalPlaces: 0)
                     ->sortable(),
                 TextColumn::make('stock')
