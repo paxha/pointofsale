@@ -54,7 +54,7 @@ class EditSale extends EditRecord
         }
 
         $subtotal = array_sum(array_map(static fn($item) => (float)$item['total'], $products));
-        $totalTax = array_sum(array_map(static fn($item) => (float)$item['tax'], $products));
+        $totalTax = array_sum(array_map(static fn($item) => (float)$item['tax'] * (int)$item['quantity'], $products));
         $discountPercent = min(100, max(0, (float)($data['discount'] ?? 0)));
         $total = $subtotal * (1 - ($discountPercent / 100));
 
