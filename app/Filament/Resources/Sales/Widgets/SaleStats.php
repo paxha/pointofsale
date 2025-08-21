@@ -49,11 +49,24 @@ class SaleStats extends BaseWidget
             ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
-        // Per day average (this month)
-        $daysInMonth = $now->day;
-        $perDayAverage = $daysInMonth > 0 ? $monthTotal / $daysInMonth : 0;
-        $lastMonthDays = $endOfLastMonth->day;
-        $lastMonthAverage = $lastMonthDays > 0 ? $lastMonthTotal / $lastMonthDays : 0;
+        // Active days in the current month (days with at least one sale)
+        $activeDays = Sale::whereMonth('created_at', $now->month)
+            ->whereYear('created_at', $now->year)
+            ->selectRaw('DATE(created_at) as sale_date')
+            ->groupBy('sale_date')
+            ->get()
+            ->count();
+        // Per day average (active days only)
+        $perDayAverage = $activeDays > 0 ? $monthTotal / $activeDays : 0;
+        // Active days in the previous month (days with at least one sale)
+        $lastMonthActiveDays = Sale::whereMonth('created_at', $startOfLastMonth->month)
+            ->whereYear('created_at', $startOfLastMonth->year)
+            ->selectRaw('DATE(created_at) as sale_date')
+            ->groupBy('sale_date')
+            ->get()
+            ->count();
+        // Last month's per day average (active days only)
+        $lastMonthAverage = $lastMonthActiveDays > 0 ? $lastMonthTotal / $lastMonthActiveDays : 0;
         $avgChange = $lastMonthAverage > 0 ? (($perDayAverage - $lastMonthAverage) / $lastMonthAverage) * 100 : null;
         $avgIcon = $avgChange === null ? null : ($avgChange >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down');
         $avgColor = $avgChange === null ? null : ($avgChange >= 0 ? 'success' : 'danger');
@@ -65,10 +78,11 @@ class SaleStats extends BaseWidget
         $monthCount = Sale::whereMonth('created_at', $now->month)
             ->whereYear('created_at', $now->year)
             ->count();
-        // Per day average count (this month)
-        $perDayCount = $daysInMonth > 0 ? $monthCount / $daysInMonth : 0;
         $lastMonthCount = Sale::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
-        $lastMonthPerDayCount = $lastMonthDays > 0 ? $lastMonthCount / $lastMonthDays : 0;
+        // Per day sales count (active days only)
+        $perDayCount = $activeDays > 0 ? $monthCount / $activeDays : 0;
+        // Last month's per day sales count (active days only)
+        $lastMonthPerDayCount = $lastMonthActiveDays > 0 ? $lastMonthCount / $lastMonthActiveDays : 0;
         $perDayCountChange = $lastMonthPerDayCount > 0 ? (($perDayCount - $lastMonthPerDayCount) / $lastMonthPerDayCount) * 100 : null;
         $perDayCountIcon = $perDayCountChange === null ? null : ($perDayCountChange >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down');
         $perDayCountColor = $perDayCountChange === null ? null : ($perDayCountChange >= 0 ? 'success' : 'danger');
@@ -85,7 +99,7 @@ class SaleStats extends BaseWidget
                 ->color($monthColor)
                 ->chart($monthChart),
             Stat::make('Per Day Average', number_format(round($perDayAverage / 100)).' PKR')
-                ->description(($avgChange === null ? 'No data' : (abs(round($avgChange, 2)).'% '.($avgChange >= 0 ? 'increase' : 'decrease'))).' | '.round($perDayCount).' sales/day')
+                ->description(($avgChange === null ? 'No data' : (abs(round($avgChange, 2)).'% '.($avgChange >= 0 ? 'increase' : 'decrease'))).' | '.round($perDayCount).' sales/active day')
                 ->descriptionIcon($avgIcon, IconPosition::Before)
                 ->color($avgColor)
                 ->chart($avgChart),
