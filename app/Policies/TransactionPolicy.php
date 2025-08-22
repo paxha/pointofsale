@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\Transaction;
 use App\Models\User;
+use App\Models\Transaction;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TransactionPolicy
@@ -23,7 +23,7 @@ class TransactionPolicy
      */
     public function view(User $user, Transaction $transaction): bool
     {
-        return $user->can('view_transactions::transaction');
+        return $user->can('{{ View }}');
     }
 
     /**
@@ -31,7 +31,7 @@ class TransactionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_transactions::transaction');
+        return $user->can('{{ Create }}');
     }
 
     /**
@@ -39,7 +39,7 @@ class TransactionPolicy
      */
     public function update(User $user, Transaction $transaction): bool
     {
-        return $user->can('update_transactions::transaction');
+        return $user->can('{{ Update }}');
     }
 
     /**
@@ -47,7 +47,7 @@ class TransactionPolicy
      */
     public function delete(User $user, Transaction $transaction): bool
     {
-        return $user->can('delete_transactions::transaction');
+        return $user->can('{{ Delete }}');
     }
 
     /**
@@ -55,7 +55,7 @@ class TransactionPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_transactions::transaction');
+        return $user->can('{{ DeleteAny }}');
     }
 
     /**
@@ -63,7 +63,7 @@ class TransactionPolicy
      */
     public function forceDelete(User $user, Transaction $transaction): bool
     {
-        return $user->can('force_delete_transactions::transaction');
+        return $user->can('{{ ForceDelete }}');
     }
 
     /**
@@ -71,7 +71,7 @@ class TransactionPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_transactions::transaction');
+        return $user->can('{{ ForceDeleteAny }}');
     }
 
     /**
@@ -79,7 +79,7 @@ class TransactionPolicy
      */
     public function restore(User $user, Transaction $transaction): bool
     {
-        return $user->can('restore_transactions::transaction');
+        return $user->can('{{ Restore }}');
     }
 
     /**
@@ -87,7 +87,7 @@ class TransactionPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_transactions::transaction');
+        return $user->can('{{ RestoreAny }}');
     }
 
     /**
@@ -95,7 +95,7 @@ class TransactionPolicy
      */
     public function replicate(User $user, Transaction $transaction): bool
     {
-        return $user->can('replicate_transactions::transaction');
+        return $user->can('{{ Replicate }}');
     }
 
     /**
@@ -103,6 +103,6 @@ class TransactionPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_transactions::transaction');
+        return $user->can('{{ Reorder }}');
     }
 }

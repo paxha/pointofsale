@@ -6,9 +6,12 @@ use App\Casts\PriceCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'store_id',
         'transactionable_type',
@@ -17,16 +20,18 @@ class Transaction extends Model
         'referenceable_id',
         'type',
         'amount',
+        'amount_balance',
+        'quantity',
+        'quantity_balance',
         'note',
         'meta',
-        'balance',
     ];
 
     protected function casts(): array
     {
         return [
             'amount' => PriceCast::class,
-            'balance' => PriceCast::class,
+            'amount_balance' => PriceCast::class,
             'meta' => 'array',
         ];
     }

@@ -25,7 +25,7 @@ class ProductResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Product::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
     protected static ?string $recordTitleAttribute = 'Product';
 

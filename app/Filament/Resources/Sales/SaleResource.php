@@ -9,7 +9,6 @@ use App\Filament\Resources\Sales\Pages\ViewSale;
 use App\Filament\Resources\Sales\Schemas\SaleForm;
 use App\Filament\Resources\Sales\Schemas\SaleInfolist;
 use App\Filament\Resources\Sales\Tables\SalesTable;
-use App\Filament\Resources\Suppliers\RelationManagers\TransactionsRelationManager;
 use App\Models\Sale;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -51,7 +50,7 @@ class SaleResource extends Resource
     public static function getRelations(): array
     {
         return [
-            TransactionsRelationManager::class,
+            //
         ];
     }
 

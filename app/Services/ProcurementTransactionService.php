@@ -34,7 +34,7 @@ class ProcurementTransactionService
                         'procurement_id' => $procurement->id,
                         'supplier_id' => $procurement->supplier_id,
                     ],
-                    'balance' => $newBalance,
+                    'amount_balance' => $newBalance,
                 ]);
         }
 
@@ -58,7 +58,7 @@ class ProcurementTransactionService
                 $product->transactions()->create([
                     'store_id' => $procurement->store_id,
                     'type' => 'product_stock_in',
-                    'amount' => $pp->received_quantity,
+                    'quantity' => $pp->received_quantity,
                     'note' => 'Stock in from procurement',
                     'referenceable_type' => Procurement::class,
                     'referenceable_id' => $procurement->id,
@@ -67,7 +67,7 @@ class ProcurementTransactionService
                         'supplier_percentage' => $pp->supplier_percentage,
                         'cost_price' => $pp->received_unit_price,
                     ],
-                    'balance' => $newProductBalance,
+                    'quantity_balance' => $newProductBalance,
                 ]);
                 // Update product stock
                 $product->increment('stock', $pp->received_quantity);
