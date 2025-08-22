@@ -34,9 +34,9 @@ class TransactionsTable
                 TextColumn::make('amount')
                     ->label('Amount')
                     ->money('PKR')
-                    ->icon(fn($record) => $record->amount > 0 ? Heroicon::OutlinedArrowUp : Heroicon::OutlinedArrowDown)
-                    ->iconColor(fn($record) => $record->amount > 0 ? 'success' : 'danger')
-                    ->color(fn($record) => $record->amount > 0 ? 'success' : 'danger')
+                    ->icon(fn ($record) => $record->amount > 0 ? Heroicon::OutlinedArrowUp : Heroicon::OutlinedArrowDown)
+                    ->iconColor(fn ($record) => $record->amount > 0 ? 'success' : 'danger')
+                    ->color(fn ($record) => $record->amount > 0 ? 'success' : 'danger')
                     ->hiddenOn(TransactionsRelationManager::class),
                 TextColumn::make('amount_balance')
                     ->label('Balance')
@@ -44,9 +44,9 @@ class TransactionsTable
                     ->hiddenOn(TransactionsRelationManager::class),
                 TextColumn::make('quantity')
                     ->label('Quantity')
-                    ->icon(fn($record) => $record->quantity > 0 ? Heroicon::OutlinedArrowDown : Heroicon::OutlinedArrowUp)
-                    ->iconColor(fn($record) => $record->quantity > 0 ? 'success' : 'danger')
-                    ->color(fn($record) => $record->quantity > 0 ? 'success' : 'danger')
+                    ->icon(fn ($record) => $record->quantity > 0 ? Heroicon::OutlinedArrowDown : Heroicon::OutlinedArrowUp)
+                    ->iconColor(fn ($record) => $record->quantity > 0 ? 'success' : 'danger')
+                    ->color(fn ($record) => $record->quantity > 0 ? 'success' : 'danger')
                     ->visibleOn(TransactionsRelationManager::class),
                 TextColumn::make('quantity_balance')
                     ->label('Balance')
