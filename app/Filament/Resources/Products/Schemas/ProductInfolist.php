@@ -61,7 +61,7 @@ class ProductInfolist
                                 ->schema([
                                     TextEntry::make('created_at')->dateTime(),
                                     TextEntry::make('updated_at')->dateTime(),
-                                    TextEntry::make('deleted_at')->dateTime()->hidden(fn($record) => !$record->deleted_at),
+                                    TextEntry::make('deleted_at')->dateTime()->hidden(fn ($record) => ! $record->deleted_at),
                                 ])
                                 ->columnSpanFull(),
                         ])

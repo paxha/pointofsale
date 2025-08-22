@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use App\Filament\Imports\ProductImporter;
-use App\Filament\Resources\Categories\RelationManagers\ProductsRelationManager;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;

@@ -14,10 +14,10 @@ return new class extends Migration
             $table->morphs('transactionable');
             $table->nullableMorphs('referenceable');
             $table->string('type'); // supplier_debit, supplier_credit, customer_debit, customer_credit, product_stock_in, product_stock_out
-            $table->integer('amount')->nullable(); // cents, use PriceCast
-            $table->integer('quantity')->nullable(); // for stock movements
+            $table->integer('amount')->nullable(); // amount in cents or quantity in case of product_stock_in, product_stock_out
             $table->string('note')->nullable();
             $table->json('meta')->nullable();
+            $table->integer('balance')->nullable();
             $table->timestamps();
         });
     }

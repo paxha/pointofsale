@@ -2,13 +2,9 @@
 
 namespace App\Filament\Resources\Sales\Pages;
 
-use App\Enums\SalePaymentStatus;
 use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\ViewAction;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class EditSale extends EditRecord
 {
@@ -53,9 +49,9 @@ class EditSale extends EditRecord
             ];
         }
 
-        $subtotal = array_sum(array_map(static fn($item) => (float)$item['total'], $products));
-        $totalTax = array_sum(array_map(static fn($item) => (float)$item['tax'] * (int)$item['quantity'], $products));
-        $discountPercent = min(100, max(0, (float)($data['discount'] ?? 0)));
+        $subtotal = array_sum(array_map(static fn ($item) => (float) $item['total'], $products));
+        $totalTax = array_sum(array_map(static fn ($item) => (float) $item['tax'] * (int) $item['quantity'], $products));
+        $discountPercent = min(100, max(0, (float) ($data['discount'] ?? 0)));
         $total = $subtotal * (1 - ($discountPercent / 100));
 
         $data['products'] = $products;

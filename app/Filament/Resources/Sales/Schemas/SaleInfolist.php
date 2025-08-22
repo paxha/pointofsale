@@ -27,13 +27,12 @@ class SaleInfolist
                                             TextEntry::make('name')->label('Product')->columnSpan(3),
                                             TextEntry::make('pivot.unit_price')->label('Unit Price')->money('PKR')->columnSpan(1),
                                             TextEntry::make('pivot.quantity')->label('Qty')->columnSpan(1)
-                                                ->color(fn($state) => $state < 0 ? 'danger' : null)
-                                                ->badge(fn($state) => $state < 0 ? 'Return' : null),
+                                                ->color(fn ($state) => $state < 0 ? 'danger' : null)
+                                                ->badge(fn ($state) => $state < 0 ? 'Return' : null),
                                             TextEntry::make('pivot.discount')->label('Disc. %')->columnSpan(1),
                                             TextEntry::make('pivot.tax')->label('Tax')->money('PKR')->columnSpan(1),
                                             TextEntry::make('pivot_total')->label('Line Total')->money('PKR')->columnSpan(1)
-                                                ->state(fn($record) =>
-                                                    $record->pivot->unit_price * $record->pivot->quantity * (1 - ($record->pivot->discount / 100))
+                                                ->state(fn ($record) => $record->pivot->unit_price * $record->pivot->quantity * (1 - ($record->pivot->discount / 100))
                                                 ),
                                         ])->columns(8),
                                     ])
@@ -69,7 +68,7 @@ class SaleInfolist
                                     ->components([
                                         TextEntry::make('paid_at')->label('Paid Date')->dateTime(),
                                         TextEntry::make('outstanding')->label('Outstanding')->money('PKR')
-                                            ->state(fn($record) => $record->total - $record->transactions->where('type', 'customer_credit')->sum('amount')),
+                                            ->state(fn ($record) => $record->total - $record->transactions->where('type', 'customer_credit')->sum('amount')),
                                     ])
                                     ->inlineLabel(),
                             ]),

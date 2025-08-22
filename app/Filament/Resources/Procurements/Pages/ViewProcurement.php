@@ -17,16 +17,16 @@ class ViewProcurement extends ViewRecord
     {
         return [
             EditAction::make()
-                ->visible(fn() => $this->record->status !== ProcurementStatus::Closed),
+                ->visible(fn () => $this->record->status !== ProcurementStatus::Closed),
             Action::make('close')
                 ->label('Receive')
                 ->icon(Heroicon::Check)
                 ->color('success')
-                ->url(fn() => route('filament.store.resources.procurements.close', [
+                ->url(fn () => route('filament.store.resources.procurements.close', [
                     'tenant' => filament()->getTenant(),
                     'record' => $this->record,
                 ]))
-                ->visible(fn() => $this->record->status !== ProcurementStatus::Closed),
+                ->visible(fn () => $this->record->status !== ProcurementStatus::Closed),
         ];
     }
 }

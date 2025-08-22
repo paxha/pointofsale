@@ -39,7 +39,7 @@ class SaleStats extends BaseWidget
             ->groupBy('date')
             ->pluck('total', 'date');
         $period7 = CarbonPeriod::create($start7, $now);
-        $todayChart = collect($period7)->map(fn($date) => $sales7[$date->toDateString()] ?? 0)->toArray();
+        $todayChart = collect($period7)->map(fn ($date) => $sales7[$date->toDateString()] ?? 0)->toArray();
 
         // Monthly sales
         $monthTotal = Sale::where('status', SaleStatus::Completed)
@@ -59,7 +59,7 @@ class SaleStats extends BaseWidget
             ->groupBy('date')
             ->pluck('total', 'date');
         $periodMonth = CarbonPeriod::create($startOfMonth, $now);
-        $monthChart = collect($periodMonth)->map(fn($date) => $salesMonth[$date->toDateString()] ?? 0)->toArray();
+        $monthChart = collect($periodMonth)->map(fn ($date) => $salesMonth[$date->toDateString()] ?? 0)->toArray();
 
         // Active days in the current month (days with at least one completed sale)
         $activeDays = Sale::where('status', SaleStatus::Completed)

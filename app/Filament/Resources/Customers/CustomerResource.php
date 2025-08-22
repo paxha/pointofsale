@@ -8,7 +8,6 @@ use App\Filament\Resources\Customers\Pages\ListCustomers;
 use App\Filament\Resources\Customers\Pages\ViewCustomer;
 use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Customers\Tables\CustomersTable;
-use App\Filament\Resources\RelationManagers\TransactionsRelationManager;
 use App\Models\Customer;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
@@ -45,7 +44,7 @@ class CustomerResource extends Resource implements HasShieldPermissions
     public static function getRelations(): array
     {
         return [
-            TransactionsRelationManager::class,
+            //
         ];
     }
 

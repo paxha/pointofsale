@@ -2,8 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\ProductSale;
 use App\Enums\SaleStatus;
+use App\Models\ProductSale;
 
 class ProductSaleObserver
 {
@@ -11,7 +11,7 @@ class ProductSaleObserver
     {
         $sale = $productSale->sale()->first();
         $product = $productSale->product()->first();
-        if (!$sale || !$product) {
+        if (! $sale || ! $product) {
             return;
         }
         if ($sale->status !== SaleStatus::Completed) {

@@ -4,8 +4,6 @@ namespace App\Models;
 
 use App\Casts\PriceCast;
 use App\Enums\ProcurementStatus;
-use App\Observers\ProcurementObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[ObservedBy(ProcurementObserver::class)]
 class Procurement extends Model
 {
     /** @use HasFactory<\Database\Factories\ProcurementFactory> */
@@ -95,16 +92,16 @@ class Procurement extends Model
         $this->loadMissing('procurementProducts');
         $products = $this->procurementProducts;
 
-        $totalRequestedQuantity = (int)$products->sum('requested_quantity');
-        $totalReceivedQuantity = (int)$products->sum('received_quantity');
+        $totalRequestedQuantity = (int) $products->sum('requested_quantity');
+        $totalReceivedQuantity = (int) $products->sum('received_quantity');
 
-        $totalRequestedUnitPrice = (int)$products->sum(fn($p) => (int)($p->requested_quantity ?? 0) * (int)($p->requested_unit_price ?? 0));
-        $totalRequestedSupplierPrice = (int)$products->sum(fn($p) => (int)($p->requested_quantity ?? 0) * (int)($p->requested_supplier_price ?? 0));
-        $totalRequestedTaxAmount = (int)$products->sum('requested_tax_amount');
+        $totalRequestedUnitPrice = (int) $products->sum(fn ($p) => (int) ($p->requested_quantity ?? 0) * (int) ($p->requested_unit_price ?? 0));
+        $totalRequestedSupplierPrice = (int) $products->sum(fn ($p) => (int) ($p->requested_quantity ?? 0) * (int) ($p->requested_supplier_price ?? 0));
+        $totalRequestedTaxAmount = (int) $products->sum('requested_tax_amount');
 
-        $totalReceivedUnitPrice = (int)$products->sum(fn($p) => (int)($p->received_quantity ?? 0) * (int)($p->received_unit_price ?? 0));
-        $totalReceivedSupplierPrice = (int)$products->sum(fn($p) => (int)($p->received_quantity ?? 0) * (int)($p->received_supplier_price ?? 0));
-        $totalReceivedTaxAmount = (int)$products->sum('received_tax_amount');
+        $totalReceivedUnitPrice = (int) $products->sum(fn ($p) => (int) ($p->received_quantity ?? 0) * (int) ($p->received_unit_price ?? 0));
+        $totalReceivedSupplierPrice = (int) $products->sum(fn ($p) => (int) ($p->received_quantity ?? 0) * (int) ($p->received_supplier_price ?? 0));
+        $totalReceivedTaxAmount = (int) $products->sum('received_tax_amount');
 
         $this->forceFill([
             'total_requested_quantity' => $totalRequestedQuantity,

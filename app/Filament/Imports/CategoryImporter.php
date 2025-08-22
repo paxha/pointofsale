@@ -2,14 +2,13 @@
 
 namespace App\Filament\Imports;
 
+use App\Enums\CategoryStatus;
 use App\Models\Category;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
-use App\Enums\CategoryStatus;
 use Illuminate\Validation\Rules\Enum;
-
 
 class CategoryImporter extends Importer
 {
@@ -29,7 +28,7 @@ class CategoryImporter extends Importer
             ImportColumn::make('status')
                 ->label('Status')
                 ->exampleHeader('Status')
-                ->example(['active','inactive'])
+                ->example(['active', 'inactive'])
                 ->requiredMapping()
                 ->rules(['required', new Enum(CategoryStatus::class)]),
         ];
@@ -37,15 +36,15 @@ class CategoryImporter extends Importer
 
     public function resolveRecord(): Category
     {
-        return new Category();
+        return new Category;
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = 'Your category import has completed and ' . Number::format($import->successful_rows) . ' ' . str('row')->plural($import->successful_rows) . ' imported.';
+        $body = 'Your category import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
 
         if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' ' . Number::format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to import.';
+            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
         }
 
         return $body;

@@ -2,21 +2,20 @@
 
 namespace App\Filament\Resources\Brands\Tables;
 
+use App\Filament\Exports\BrandExporter;
+use App\Filament\Imports\BrandImporter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ImportAction;
+use Filament\Actions\ReplicateAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Actions\ReplicateAction;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Actions\RestoreBulkAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use App\Filament\Imports\BrandImporter;
-use Filament\Actions\ImportAction;
-use App\Filament\Exports\BrandExporter;
-use Filament\Actions\ExportBulkAction;
-
+use Filament\Tables\Table;
 
 class BrandsTable
 {
@@ -47,7 +46,7 @@ class BrandsTable
             ])
             ->headerActions([
                 ImportAction::make()
-                    ->importer(BrandImporter::class)
+                    ->importer(BrandImporter::class),
             ])
             ->defaultSort('id', 'desc')
             ->filters([

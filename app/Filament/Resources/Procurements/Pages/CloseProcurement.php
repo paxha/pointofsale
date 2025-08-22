@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Procurements\Pages;
 
 use App\Enums\ProcurementStatus;
 use App\Filament\Resources\Procurements\ProcurementResource;
+use App\Services\ProcurementTransactionService;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
@@ -77,8 +78,8 @@ class CloseProcurement extends Page implements HasSchemas
                             ->required()
                             ->live(debounce: 1000)
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $percentage = (float)$get('received_supplier_percentage');
-                                $price = (float)$get('received_supplier_price');
+                                $percentage = (float) $get('received_supplier_percentage');
+                                $price = (float) $get('received_supplier_price');
                                 if ($percentage > 0) {
                                     $newPrice = round($state * $percentage / 100, 2);
                                     if ($newPrice !== $price) {
@@ -90,10 +91,10 @@ class CloseProcurement extends Page implements HasSchemas
                                         $set('received_supplier_percentage', $newPercentage);
                                     }
                                 }
-                                $taxPercentage = (float)$get('received_tax_percentage');
+                                $taxPercentage = (float) $get('received_tax_percentage');
                                 $taxAmount = round($state * $taxPercentage / 100, 2);
                                 $set('received_tax_amount', $taxAmount);
-                                $taxAmountField = (float)$get('received_tax_amount');
+                                $taxAmountField = (float) $get('received_tax_amount');
                                 if ($taxAmountField > 0 && $state > 0) {
                                     $newTaxPercentage = round($taxAmountField / $state * 100, 2);
                                     if ($newTaxPercentage !== $taxPercentage) {
@@ -107,7 +108,7 @@ class CloseProcurement extends Page implements HasSchemas
                             ->numeric()
                             ->live(debounce: 1000)
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $unitPrice = (float)$get('received_unit_price');
+                                $unitPrice = (float) $get('received_unit_price');
                                 $taxAmount = round($unitPrice * $state / 100, 2);
                                 $set('received_tax_amount', $taxAmount);
                             }),
@@ -117,8 +118,8 @@ class CloseProcurement extends Page implements HasSchemas
                             ->numeric()
                             ->live(debounce: 1000)
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $unitPrice = (float)$get('received_unit_price');
-                                $taxPercentage = (float)$get('received_tax_percentage');
+                                $unitPrice = (float) $get('received_unit_price');
+                                $taxPercentage = (float) $get('received_tax_percentage');
                                 if ($unitPrice > 0) {
                                     $newTaxPercentage = round($state / $unitPrice * 100, 2);
                                     if ($newTaxPercentage !== $taxPercentage) {
@@ -136,8 +137,8 @@ class CloseProcurement extends Page implements HasSchemas
                             ->numeric()
                             ->live(debounce: 1000)
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $unitPrice = (float)$get('received_unit_price');
-                                $price = (float)$get('received_supplier_price');
+                                $unitPrice = (float) $get('received_unit_price');
+                                $price = (float) $get('received_supplier_price');
                                 if ($unitPrice > 0) {
                                     $newPrice = round($unitPrice - ($unitPrice * $state / 100), 2);
                                     if ($newPrice !== $price) {
@@ -155,8 +156,8 @@ class CloseProcurement extends Page implements HasSchemas
                             ->numeric()
                             ->live(debounce: 1000)
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $unitPrice = (float)$get('received_unit_price');
-                                $percentage = (float)$get('received_supplier_percentage');
+                                $unitPrice = (float) $get('received_unit_price');
+                                $percentage = (float) $get('received_supplier_percentage');
                                 if ($unitPrice > 0) {
                                     $newPercentage = round((($unitPrice - $state) / $unitPrice) * 100, 2);
                                     if ($newPercentage !== $percentage) {
@@ -193,6 +194,9 @@ class CloseProcurement extends Page implements HasSchemas
         $this->record->status = ProcurementStatus::Closed;
         $this->record->save();
         $this->record->recalculateTotals();
+
+        app(ProcurementTransactionService::class)->handleProcurementClosed($this->record);
+
         Notification::make()
             ->title('Procurement closed')
             ->body('Procurement details saved successfully.')

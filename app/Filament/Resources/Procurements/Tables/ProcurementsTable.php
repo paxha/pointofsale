@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Procurements\Tables;
 use App\Enums\ProcurementStatus;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -62,15 +61,15 @@ class ProcurementsTable
                     ->hiddenLabel(),
                 EditAction::make()
                     ->hiddenLabel()
-                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
                 Action::make('close')
                     ->label('Receive')
                     ->icon(Heroicon::Check)
-                    ->url(fn($record) => route('filament.store.resources.procurements.close', [
+                    ->url(fn ($record) => route('filament.store.resources.procurements.close', [
                         'tenant' => filament()->getTenant(),
                         'record' => $record,
                     ]))
-                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

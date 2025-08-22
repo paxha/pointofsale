@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Sales\Pages;
 
 use App\Filament\Resources\Sales\SaleResource;
-use Filament\Actions\EditAction;
 use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewSale extends ViewRecord
@@ -18,12 +18,12 @@ class ViewSale extends ViewRecord
             Action::make('print')
                 ->label('Print')
                 ->icon('heroicon-o-printer')
-                ->url(fn($record) => route('sales.receipt', ['sale' => $record->id]))
+                ->url(fn ($record) => route('sales.receipt', ['sale' => $record->id]))
                 ->openUrlInNewTab(),
             Action::make('markAsPaid')
                 ->label('Mark as Paid')
                 ->icon('heroicon-o-currency-dollar')
-                ->visible(fn($record) => $record->payment_status !== 'paid')
+                ->visible(fn ($record) => $record->payment_status !== 'paid')
                 ->requiresConfirmation()
                 ->action(function ($record) {
                     $record->update([

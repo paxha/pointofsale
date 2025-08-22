@@ -25,15 +25,15 @@ class BrandImporter extends Importer
 
     public function resolveRecord(): Brand
     {
-        return new Brand();
+        return new Brand;
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = 'Your brand import has completed and ' . Number::format($import->successful_rows) . ' ' . str('row')->plural($import->successful_rows) . ' imported.';
+        $body = 'Your brand import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
 
         if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' ' . Number::format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to import.';
+            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
         }
 
         return $body;

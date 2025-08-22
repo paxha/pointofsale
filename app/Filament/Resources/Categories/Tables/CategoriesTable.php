@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\Categories\Tables;
 
+use App\Filament\Imports\CategoryImporter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ImportAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use App\Filament\Imports\CategoryImporter;
-use Filament\Actions\ImportAction;
 
 class CategoriesTable
 {
@@ -44,7 +44,7 @@ class CategoriesTable
             ])
             ->headerActions([
                 ImportAction::make()
-                    ->importer(CategoryImporter::class)
+                    ->importer(CategoryImporter::class),
             ])
             ->defaultSort('id', 'desc')
             ->filters([

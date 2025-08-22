@@ -42,7 +42,7 @@ class SaleForm
                                         ->live()
                                         ->afterStateUpdated(function ($state, $set, $get) {
                                             $product = Product::whereSku($state)->first();
-                                            if (!$product) {
+                                            if (! $product) {
                                                 Notification::make()
                                                     ->title('Product not found')
                                                     ->danger()
@@ -73,12 +73,12 @@ class SaleForm
                                                 ->all();
                                         })
                                         ->afterStateUpdated(function ($state, $set, $get) {
-                                            if (!$state) {
+                                            if (! $state) {
                                                 return;
                                             }
 
                                             $product = Product::find($state);
-                                            if (!$product) {
+                                            if (! $product) {
                                                 Notification::make()
                                                     ->title('Product not found')
                                                     ->danger()
@@ -167,7 +167,7 @@ class SaleForm
                                             ->live(debounce: 1000)
                                             ->inlineLabel()
                                             ->afterStateUpdated(function ($state, $set, $get) {
-                                                $discount = min(100, max(0, (float)$state));
+                                                $discount = min(100, max(0, (float) $state));
                                                 $set('discount', $discount);
                                                 // Recalculate totals applying global discount
                                                 SaleForm::recalcSummary($get, $set);
@@ -186,8 +186,8 @@ class SaleForm
                                             ->relationship('customer', 'name')
                                             ->searchable(['name', 'phone'])
                                             ->preload()
-                                            ->getOptionLabelFromRecordUsing(fn(Model $record) => "$record->name - $record->phone")
-                                            ->createOptionForm(fn(Schema $schema) => CustomerForm::configure($schema))
+                                            ->getOptionLabelFromRecordUsing(fn (Model $record) => "$record->name - $record->phone")
+                                            ->createOptionForm(fn (Schema $schema) => CustomerForm::configure($schema))
                                             ->createOptionModalHeading('New Customer'),
                                     ])
                                     ->columnSpanFull(),
@@ -233,34 +233,35 @@ class SaleForm
     private static function recalcSummary(
         callable $get,
         callable $set,
-        string   $productsPath = 'products',
-        string   $subtotalPath = 'subtotal',
-        string   $totalPath = 'total',
-        string   $totalTaxPath = 'total_tax',
-        string   $discountPath = 'discount',
-    ): void
-    {
+        string $productsPath = 'products',
+        string $subtotalPath = 'subtotal',
+        string $totalPath = 'total',
+        string $totalTaxPath = 'total_tax',
+        string $discountPath = 'discount',
+    ): void {
         $products = $get($productsPath) ?? [];
 
         // Subtotal: sum of all (unit_price * quantity * (1 - line discount %))
         $subtotal = array_sum(array_map(static function ($item) {
-            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
-            $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : 0;
-            $discount = isset($item['discount']) ? min(100, max(0, (float)$item['discount'])) : 0;
+            $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 1;
+            $unitPrice = isset($item['unit_price']) ? (float) $item['unit_price'] : 0;
+            $discount = isset($item['discount']) ? min(100, max(0, (float) $item['discount'])) : 0;
+
             return $unitPrice * $quantity * (1 - ($discount / 100));
         }, $products));
         $set($subtotalPath, round($subtotal, 2));
 
         // Total tax: sum of all (tax * quantity)
         $totalTax = array_sum(array_map(static function ($item) {
-            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
-            $tax = isset($item['tax']) ? (float)$item['tax'] : 0;
+            $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 1;
+            $tax = isset($item['tax']) ? (float) $item['tax'] : 0;
+
             return $tax * $quantity;
         }, $products));
         $set($totalTaxPath, round($totalTax, 2));
 
         // Sale-level discount (applied to subtotal after line discounts)
-        $discountPercent = min(100, max(0, (float)$get($discountPath)));
+        $discountPercent = min(100, max(0, (float) $get($discountPath)));
         $total = $subtotal * (1 - ($discountPercent / 100));
         $set($totalPath, round($total, 2));
     }
@@ -272,15 +273,14 @@ class SaleForm
     private static function recalcLine(
         callable $get,
         callable $set,
-        string   $productsPath = '../../products',
-        string   $subtotalPath = '../../subtotal',
-        string   $totalPath = '../../total',
-        string   $totalTaxPath = '../../total_tax',
-        string   $discountPath = '../../discount',
-    ): void
-    {
-        $quantity = (int)($get('quantity') ?: 1); // Allow negative, disallow zero via validation
-        $discount = min(100, max(0, (int)($get('discount') ?? 0)));
+        string $productsPath = '../../products',
+        string $subtotalPath = '../../subtotal',
+        string $totalPath = '../../total',
+        string $totalTaxPath = '../../total_tax',
+        string $discountPath = '../../discount',
+    ): void {
+        $quantity = (int) ($get('quantity') ?: 1); // Allow negative, disallow zero via validation
+        $discount = min(100, max(0, (int) ($get('discount') ?? 0)));
 
         $set('quantity', $quantity);
         $set('discount', $discount);
@@ -315,7 +315,7 @@ class SaleForm
         }
         unset($item);
 
-        if (!$found) {
+        if (! $found) {
             array_unshift($products, [
                 'product_id' => $product->id,
                 'name' => $product->name,
@@ -350,7 +350,7 @@ class SaleForm
 
             return redirect()->to(SaleResource::getUrl('create'));
         }
-        if (!$subtotal || !$total) {
+        if (! $subtotal || ! $total) {
             Notification::make()
                 ->title('Missing required sale information.')
                 ->danger()
@@ -362,7 +362,7 @@ class SaleForm
         try {
             $sale = DB::transaction(function () use ($state, $products, $status) {
                 $paidAt = ($state['payment_status'] ?? null) === SalePaymentStatus::Paid ? now() : null;
-                if (!empty($state['sale_id'])) {
+                if (! empty($state['sale_id'])) {
                     // Update existing sale
                     $sale = Sale::findOrFail($state['sale_id']);
                     $sale->update([
@@ -409,13 +409,15 @@ class SaleForm
                         ]);
                     }
                 }
+
                 return $sale;
             });
         } catch (Throwable $e) {
             Notification::make()
-                ->title(($state['sale_id'] ? 'Failed to update sale: ' : 'Failed to create sale: ') . $e->getMessage())
+                ->title(($state['sale_id'] ? 'Failed to update sale: ' : 'Failed to create sale: ').$e->getMessage())
                 ->danger()
                 ->send();
+
             return redirect()->to($state['sale_id'] ? SaleResource::getUrl('edit', ['record' => $state['sale_id']]) : SaleResource::getUrl('create'));
         }
         Notification::make()
@@ -430,6 +432,7 @@ class SaleForm
                 'next' => SaleResource::getUrl('create'),
             ]);
         }
+
         // Otherwise, just go to create page
         return redirect()->to(SaleResource::getUrl('create'));
     }

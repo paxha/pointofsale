@@ -37,7 +37,7 @@ class ProcurementInfolist
                                                 TextEntry::make('requested_supplier_percentage')->label('Sup. %'),
                                                 TextEntry::make('requested_supplier_price')->label('Sup. Price')->money('PKR', decimalPlaces: 0),
                                             ])
-                                            ->columns(4)
+                                            ->columns(4),
                                     ])
                                     ->columnSpanFull(),
                             ])
@@ -72,7 +72,7 @@ class ProcurementInfolist
                                     ->schema([
                                         TextEntry::make('created_at')->dateTime(),
                                         TextEntry::make('updated_at')->dateTime(),
-                                        TextEntry::make('deleted_at')->dateTime()->hidden(fn($record) => !$record->deleted_at),
+                                        TextEntry::make('deleted_at')->dateTime()->hidden(fn ($record) => ! $record->deleted_at),
                                     ])
                                     ->columnSpanFull(),
                             ])

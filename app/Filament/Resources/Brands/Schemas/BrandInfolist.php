@@ -11,7 +11,7 @@ class BrandInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-         return $schema
+        return $schema
             ->components([
                 Grid::make()
                     ->schema([

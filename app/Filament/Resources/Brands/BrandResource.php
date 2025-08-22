@@ -58,8 +58,4 @@ class BrandResource extends Resource
             'edit' => EditBrand::route('/{record}/edit'),
         ];
     }
-
-    
-
-    
 }

@@ -30,7 +30,7 @@ class ProcurementForm
                                 $supplier = Supplier::find($state);
                                 $supplierId = $supplier->id;
                                 $procurementCount = $supplier->procurements()->count();
-                                $reference = $supplierId . '-' . str_pad($procurementCount + 1, 2, '0', STR_PAD_LEFT);
+                                $reference = $supplierId.'-'.str_pad($procurementCount + 1, 2, '0', STR_PAD_LEFT);
                                 $set('reference', $reference);
                             }),
                         TextInput::make('reference')
@@ -81,8 +81,8 @@ class ProcurementForm
                                     ->minValue(0)
                                     ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
-                                        $unitPrice = (float)$get('requested_unit_price');
-                                        $taxPercent = (float)$get('requested_tax_percentage');
+                                        $unitPrice = (float) $get('requested_unit_price');
+                                        $taxPercent = (float) $get('requested_tax_percentage');
                                         $taxAmount = $unitPrice * ($taxPercent / 100);
                                         $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
@@ -92,11 +92,11 @@ class ProcurementForm
                                     ->numeric()
                                     ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
-                                        $unitPrice = (float)($state ?? 0);
+                                        $unitPrice = (float) ($state ?? 0);
 
                                         // --- Supplier (Cost) Calculation ---
-                                        $supplierPercent = (float)$get('requested_supplier_percentage');
-                                        $supplierPrice = (float)$get('requested_supplier_price');
+                                        $supplierPercent = (float) $get('requested_supplier_percentage');
+                                        $supplierPrice = (float) $get('requested_supplier_price');
                                         if ($supplierPercent > 0) {
                                             $supplierPrice = $unitPrice - ($unitPrice * $supplierPercent / 100);
                                             $set('requested_supplier_price', round($supplierPrice, 2));
@@ -109,8 +109,8 @@ class ProcurementForm
                                         }
 
                                         // --- Tax Calculation ---
-                                        $taxPercent = (float)$get('requested_tax_percentage');
-                                        $taxAmount = (float)$get('requested_tax_amount');
+                                        $taxPercent = (float) $get('requested_tax_percentage');
+                                        $taxAmount = (float) $get('requested_tax_amount');
                                         if ($taxPercent > 0) {
                                             $taxAmount = $unitPrice * ($taxPercent / 100);
                                             $set('requested_tax_amount', round($taxAmount, 2));
@@ -130,7 +130,7 @@ class ProcurementForm
                                     ->numeric()
                                     ->live(debounce: 1000)
                                     ->afterStateUpdated(function (mixed $state, $set, $get): void {
-                                        $unitPrice = (float)$get('requested_unit_price');
+                                        $unitPrice = (float) $get('requested_unit_price');
                                         $taxAmount = $unitPrice * (($state ?? 0) / 100);
                                         $set('requested_tax_amount', $taxAmount);
                                         self::recalcLine($get, $set);
@@ -235,7 +235,7 @@ class ProcurementForm
                                     ->prefix('PKR'),
                             ]),
                     ])
-                ->columnSpanFull(),
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -245,10 +245,9 @@ class ProcurementForm
     private static function recalcSummary(
         callable $get,
         callable $set,
-        string   $itemsPath = 'procurementProducts',
-        string   $totalPath = 'total_requested_supplier_price'
-    ): void
-    {
+        string $itemsPath = 'procurementProducts',
+        string $totalPath = 'total_requested_supplier_price'
+    ): void {
         $items = $get($itemsPath) ?? [];
 
         $sumQty = 0.0;
@@ -257,10 +256,10 @@ class ProcurementForm
         $sumTax = 0.0;  // tax on unit price total
 
         foreach ($items as $item) {
-            $qty = (float)($item['requested_quantity'] ?? 0);
-            $supplier = (float)($item['requested_supplier_price'] ?? 0);
-            $unit = (float)($item['requested_unit_price'] ?? 0);
-            $taxP = (float)($item['requested_tax_percentage'] ?? 0);
+            $qty = (float) ($item['requested_quantity'] ?? 0);
+            $supplier = (float) ($item['requested_supplier_price'] ?? 0);
+            $unit = (float) ($item['requested_unit_price'] ?? 0);
+            $taxP = (float) ($item['requested_tax_percentage'] ?? 0);
 
             $sumQty += $qty;
             $sumSupplier += $qty * $supplier;
@@ -274,10 +273,10 @@ class ProcurementForm
             ? str_replace('total_requested_supplier_price', '', $totalPath)
             : '';
 
-        $set($prefix . 'total_requested_quantity', round($sumQty, 2));
-        $set($prefix . 'total_requested_supplier_price', round($sumSupplier, 2));
-        $set($prefix . 'total_requested_unit_price', round($sumUnit, 2));
-        $set($prefix . 'total_requested_tax_amount', round($sumTax, 2));
+        $set($prefix.'total_requested_quantity', round($sumQty, 2));
+        $set($prefix.'total_requested_supplier_price', round($sumSupplier, 2));
+        $set($prefix.'total_requested_unit_price', round($sumUnit, 2));
+        $set($prefix.'total_requested_tax_amount', round($sumTax, 2));
     }
 
     /**
@@ -286,10 +285,9 @@ class ProcurementForm
     private static function recalcLine(
         callable $get,
         callable $set,
-        string   $itemsPath = '../../procurementProducts',
-        string   $totalPath = '../../total_requested_supplier_price'
-    ): void
-    {
+        string $itemsPath = '../../procurementProducts',
+        string $totalPath = '../../total_requested_supplier_price'
+    ): void {
         self::recalcSummary($get, $set, $itemsPath, $totalPath);
     }
 }
