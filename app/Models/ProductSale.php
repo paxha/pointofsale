@@ -3,12 +3,9 @@
 namespace App\Models;
 
 use App\Casts\PriceCast;
-use App\Observers\ProductSaleObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-#[ObservedBy(ProductSaleObserver::class)]
 class ProductSale extends Pivot
 {
     protected function casts(): array

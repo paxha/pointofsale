@@ -17,23 +17,18 @@ class ProcurementTransactionService
         // Supplier debit transaction (for supplier, with reference)
         if ($procurement->supplier) {
             $supplier = $procurement->supplier;
-            $lastTransaction = $supplier->transactions()->latest('created_at')->first();
-            $previousBalance = $lastTransaction?->balance ?? 0;
+            $lastBalance = $supplier->transactions()->latest('id')->value('amount_balance') ?? 0;
             $amount = -abs($procurement->total_received_supplier_price); // supplier_debit is a minus entry
-            $newBalance = $previousBalance + $amount; // supplier_debit decreases balance
+            $newBalance = $lastBalance + $amount; // supplier_debit decreases balance
 
             $supplier->transactions()
                 ->create([
                     'store_id' => $procurement->store_id,
-                    'type' => 'supplier_debit',
-                    'amount' => $amount,
-                    'note' => 'Procurement closed: supplier debit',
                     'referenceable_type' => Procurement::class,
                     'referenceable_id' => $procurement->id,
-                    'meta' => [
-                        'procurement_id' => $procurement->id,
-                        'supplier_id' => $procurement->supplier_id,
-                    ],
+                    'type' => 'supplier_credit',
+                    'amount' => $amount,
+                    'note' => 'Procurement closed: supplier credit',
                     'amount_balance' => $newBalance,
                 ]);
         }
@@ -51,9 +46,8 @@ class ProcurementTransactionService
                 $product->supplier_price = $pp->received_supplier_price;
                 $product->save();
 
-                $lastProductTransaction = $product->transactions()->latest('created_at')->first();
-                $previousProductBalance = $lastProductTransaction?->balance ?? 0;
-                $newProductBalance = $previousProductBalance + $pp->received_quantity; // stock in increases balance
+                $lastProductBalance = $product->transactions()->latest('id')->value('quantity_balance') ?? 0;
+                $newProductBalance = $lastProductBalance + $pp->received_quantity; // stock in increases balance
 
                 $product->transactions()->create([
                     'store_id' => $procurement->store_id,
@@ -69,8 +63,10 @@ class ProcurementTransactionService
                     ],
                     'quantity_balance' => $newProductBalance,
                 ]);
+
                 // Update product stock
-                $product->increment('stock', $pp->received_quantity);
+                $product->stock = $newProductBalance;
+                $product->save();
             }
         }
     }

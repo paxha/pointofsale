@@ -8,6 +8,7 @@ use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Sales\SaleResource;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Services\SaleTransactionService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -427,6 +428,8 @@ class SaleForm
 
         // Only redirect to receipt if status is Completed
         if ($status === SaleStatus::Completed) {
+            app(SaleTransactionService::class)->handleSaleOnCompleted($sale);
+
             return redirect()->route('sales.receipt', [
                 'sale' => $sale->id,
                 'next' => SaleResource::getUrl('create'),
