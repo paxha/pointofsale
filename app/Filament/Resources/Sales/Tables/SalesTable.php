@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Sales\Tables;
 
 use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
+use App\Filament\Resources\Customers\RelationManagers\SalesRelationManager;
 use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -25,7 +26,7 @@ class SalesTable
                 TextColumn::make('id')
                     ->label('Reference')
                     ->prefix('#'),
-                TextColumn::make('customer_display')
+                TextColumn::make('customer')
                     ->label('Customer')
                     ->getStateUsing(fn ($record) => $record->customer?->name ?? 'Guest')
                     ->description(fn ($record) => $record->customer?->phone ?: null)
@@ -36,7 +37,8 @@ class SalesTable
                                     ->orWhere('phone', 'like', "%$search%");
                             });
                         }
-                    ),
+                    )
+                    ->hiddenOn(SalesRelationManager::class),
                 TextColumn::make('total')
                     ->label('Amount')
                     ->money('PKR'),
@@ -45,6 +47,14 @@ class SalesTable
                     ->badge(),
                 TextColumn::make('status')
                     ->badge(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('id', 'desc')
             ->filters([

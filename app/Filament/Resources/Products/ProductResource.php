@@ -6,6 +6,8 @@ use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\Pages\ViewProduct;
+use App\Filament\Resources\Products\RelationManagers\ProcurementsRelationManager;
+use App\Filament\Resources\Products\RelationManagers\SalesRelationManager;
 use App\Filament\Resources\Products\RelationManagers\TransactionsRelationManager;
 use App\Filament\Resources\Products\Schemas\ProductForm;
 use App\Filament\Resources\Products\Schemas\ProductInfolist;
@@ -55,6 +57,8 @@ class ProductResource extends Resource implements HasShieldPermissions
     {
         return [
             TransactionsRelationManager::class,
+            ProcurementsRelationManager::class,
+            SalesRelationManager::class,
         ];
     }
 
