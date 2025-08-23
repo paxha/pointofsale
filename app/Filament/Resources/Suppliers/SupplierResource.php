@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Suppliers;
 
+use App\Filament\Resources\Suppliers\RelationManagers\ProcurementsRelationManager;
 use App\Filament\Resources\Suppliers\Pages\CreateSupplier;
 use App\Filament\Resources\Suppliers\Pages\EditSupplier;
 use App\Filament\Resources\Suppliers\Pages\ListSuppliers;
@@ -57,6 +58,7 @@ class SupplierResource extends Resource implements HasShieldPermissions
     {
         return [
             TransactionsRelationManager::class,
+            ProcurementsRelationManager::class,
         ];
     }
 

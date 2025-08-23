@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Procurements\Tables;
 
 use App\Enums\ProcurementStatus;
+use App\Filament\Resources\Suppliers\RelationManagers\ProcurementsRelationManager;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -27,7 +28,8 @@ class ProcurementsTable
                 TextColumn::make('supplier.name')
                     ->label('Supplier')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->hiddenOn(ProcurementsRelationManager::class),
                 TextColumn::make('total_requested_supplier_price')
                     ->label('Req. Supplier Price')
                     ->money('PKR')
@@ -61,15 +63,15 @@ class ProcurementsTable
                     ->hiddenLabel(),
                 EditAction::make()
                     ->hiddenLabel()
-                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
                 Action::make('close')
                     ->label('Receive')
                     ->icon(Heroicon::Check)
-                    ->url(fn ($record) => route('filament.store.resources.procurements.close', [
+                    ->url(fn($record) => route('filament.store.resources.procurements.close', [
                         'tenant' => filament()->getTenant(),
                         'record' => $record,
                     ]))
-                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
