@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sales;
 
+use App\Enums\SaleStatus;
 use App\Filament\Resources\Sales\Pages\CreateSale;
 use App\Filament\Resources\Sales\Pages\EditSale;
 use App\Filament\Resources\Sales\Pages\ListSales;
@@ -15,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class SaleResource extends Resource
@@ -45,6 +47,16 @@ class SaleResource extends Resource
     public static function table(Table $table): Table
     {
         return SalesTable::configure($table);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return $record->status === SaleStatus::Pending;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return $record->status === SaleStatus::Pending;
     }
 
     public static function getRelations(): array

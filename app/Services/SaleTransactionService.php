@@ -55,4 +55,55 @@ class SaleTransactionService
                 ]);
         }
     }
+
+    public function handleSaleOnCancelled(Sale $sale): void
+    {
+        $sale->status = SaleStatus::Cancelled;
+
+        foreach ($sale->products as $product) {
+            $pivot = $product->pivot;
+
+            $lastProductBalance = $product->transactions()->latest('id')->value('quantity_balance') ?? 0;
+            $reverseQuantity = $pivot->quantity;
+
+            $newProductBalance = $lastProductBalance + $reverseQuantity;
+
+            $product->transactions()->create([
+                'store_id' => $sale->store_id,
+                'referenceable_type' => Sale::class,
+                'referenceable_id' => $sale->id,
+                'type' => 'product_stock_in',
+                'quantity' => $reverseQuantity,
+                'quantity_balance' => $newProductBalance,
+                'note' => 'Stock restored on sale cancellation',
+            ]);
+
+            $product->stock = $newProductBalance;
+            $product->save();
+        }
+
+        // Reverse customer transaction if sale was on credit
+        if ($sale->payment_status === SalePaymentStatus::Credit && $sale->customer) {
+            $customer = $sale->customer;
+
+            $lastCustomerBalance = $customer->transactions()->latest('id')->value('amount_balance') ?? 0;
+            $amount = abs($sale->total);
+
+            $newCustomerBalance = $lastCustomerBalance - $amount;
+
+            $customer->transactions()->create([
+                'store_id' => $sale->store_id,
+                'referenceable_type' => Sale::class,
+                'referenceable_id' => $sale->id,
+                'type' => 'customer_credit',
+                'amount' => -$amount,
+                'amount_balance' => $newCustomerBalance,
+                'note' => 'Sale cancelled: customer credit reversed',
+            ]);
+
+            $sale->payment_status = SalePaymentStatus::Refunded;
+        }
+
+        $sale->save();
+    }
 }

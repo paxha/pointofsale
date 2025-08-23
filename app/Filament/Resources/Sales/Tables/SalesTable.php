@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Sales\Tables;
 
+use App\Enums\SaleStatus;
 use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -47,16 +49,22 @@ class SalesTable
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->hiddenLabel(),
                 Action::make('print')
-                    ->label('Print')
+                    ->hiddenLabel()
                     ->icon('heroicon-o-printer')
                     ->color('gray')
                     ->url(fn ($record) => route('sales.receipt', [
                         'sale' => $record->id,
-                        'next' => SaleResource::getUrl(), // return to sales list after printing
+                        'next' => SaleResource::getUrl(),
                     ])),
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->hiddenLabel()
+                    ->visible(fn ($record) => $record->status === SaleStatus::Pending),
+                DeleteAction::make()
+                    ->hiddenLabel()
+                    ->visible(fn ($record) => $record->status === SaleStatus::Pending),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
