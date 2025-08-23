@@ -54,7 +54,6 @@ class TransactionsRelationManager extends RelationManager
                             ->success()
                             ->send();
                     })
-                    ->color('success')
                     ->icon(Heroicon::OutlinedArrowUp),
             ]);
     }
