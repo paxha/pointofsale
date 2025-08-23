@@ -40,18 +40,17 @@ class SaleTransactionService
             $customer = $sale->customer;
 
             $lastBalance = $customer->transactions()->latest('id')->value('amount_balance') ?? 0;
-            $amount = abs($sale->total);
-            $newBalance = $lastBalance + $amount; // or - $amount, depending on transaction type
+            $newBalance = $lastBalance + $sale->total;
 
             $customer->transactions()
                 ->create([
                     'store_id' => $sale->store_id,
                     'referenceable_type' => Sale::class,
                     'referenceable_id' => $sale->id,
-                    'type' => 'customer_debit',
-                    'amount' => $amount,
+                    'type' => ($sale->total > 0) ? 'customer_debit' : 'customer_credit',
+                    'amount' => $sale->total,
                     'amount_balance' => $newBalance,
-                    'note' => 'Sale: customer debit',
+                    'note' => ($sale->total > 0) ? 'Sale completed: customer debit' : 'Sale returned: customer credit',
                 ]);
         }
     }
