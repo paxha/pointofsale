@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sales\Tables;
 
+use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
 use App\Filament\Resources\Sales\SaleResource;
 use Filament\Actions\Action;
@@ -11,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -46,7 +48,13 @@ class SalesTable
             ])
             ->defaultSort('id', 'desc')
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options(SaleStatus::class)
+                    ->multiple()
+                    ->preload(),
+                SelectFilter::make('payment_status')
+                    ->options(SalePaymentStatus::class)
+                    ->multiple(),
             ])
             ->recordActions([
                 ViewAction::make()
