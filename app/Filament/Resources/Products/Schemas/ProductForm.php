@@ -132,8 +132,7 @@ class ProductForm
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "$record->name ($record->symbol)")
                                             ->searchable()
                                             ->preload()
-                                            ->reactive()
-                                            ->required(),
+                                            ->reactive(),
                                     ])
                                     ->columnSpanFull(),
                                 Section::make('Associations')
