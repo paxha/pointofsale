@@ -31,7 +31,7 @@ class TransactionsRelationManager extends RelationManager
                             TextInput::make('note')
                                 ->label('Note')
                                 ->maxLength(20),
-                        ])
+                        ]),
                     ])
                     ->action(function (array $data, RelationManager $livewire) {
                         $supplier = $livewire->getOwnerRecord();
@@ -45,7 +45,7 @@ class TransactionsRelationManager extends RelationManager
                                 'store_id' => $supplier->store_id,
                                 'type' => 'supplier_debit',
                                 'amount' => $amount,
-                                'note' => 'Supplier debit: ' . $data['note'],
+                                'note' => 'Supplier debit: '.$data['note'],
                                 'amount_balance' => $newBalance,
                             ]);
 

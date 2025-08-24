@@ -1,20 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\Categories\Tables;
+namespace App\Filament\Resources\Units\Tables;
 
-use App\Filament\Imports\CategoryImporter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\ImportAction;
-use Filament\Actions\RestoreBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
-class CategoriesTable
+class UnitsTable
 {
     public static function configure(Table $table): Table
     {
@@ -22,12 +17,7 @@ class CategoriesTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('products_count')
-                    ->label('Products')
-                    ->counts('products')
-                    ->sortable(),
-                TextColumn::make('status')
-                    ->badge(),
+                TextColumn::make('symbol'),
                 TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
@@ -41,25 +31,16 @@ class CategoriesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->headerActions([
-                ImportAction::make()
-                    ->importer(CategoryImporter::class),
-            ])
             ->defaultSort('id', 'desc')
             ->filters([
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->hiddenLabel(),
-                EditAction::make()
-                    ->hiddenLabel(),
+                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
                 ]),
             ]);
     }

@@ -27,6 +27,8 @@ class BrandResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Brand';
 
+    protected static ?int $navigationSort = 1;
+
     public static function form(Schema $schema): Schema
     {
         return BrandForm::configure($schema);

@@ -7,6 +7,7 @@ use App\Filament\Resources\Brands\Schemas\BrandForm;
 use App\Filament\Resources\Categories\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Categories\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
+use App\Models\Unit;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -43,16 +44,17 @@ class ProductForm
                                             ->step(0.01)
                                             ->required()
                                             ->columnSpan(2)
+                                            ->suffix(fn ($get) => $get('unit_id') ? '/'.Unit::find($get('unit_id'))?->symbol : null)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $salePercentage = (float)$get('sale_percentage');
+                                                $salePercentage = (float) $get('sale_percentage');
                                                 if ($state > 0 && $salePercentage !== null && $salePercentage !== '') {
                                                     $salePrice = $state - ($state * ($salePercentage / 100));
                                                     $set('sale_price', round($salePrice, 2));
                                                 } elseif ($state > 0) {
                                                     $set('sale_price', null);
                                                 }
-                                                $salePrice = (float)$get('sale_price');
+                                                $salePrice = (float) $get('sale_price');
                                                 if ($state > 0 && $salePrice > 0) {
                                                     $percentage = 100 - (($salePrice / $state) * 100);
                                                     $set('sale_percentage', round($percentage, 2));
@@ -64,9 +66,10 @@ class ProductForm
                                             ->numeric()
                                             ->step(0.01)
                                             ->columnSpan(2)
+                                            ->suffix(fn ($get) => $get('unit_id') ? '/'.Unit::find($get('unit_id'))?->symbol : null)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $price = (float)$get('price');
+                                                $price = (float) $get('price');
                                                 if ($price > 0 && $state !== null) {
                                                     $percentage = 100 - (($state / $price) * 100);
                                                     $set('sale_percentage', round($percentage, 2));
@@ -80,9 +83,10 @@ class ProductForm
                                             ->numeric()
                                             ->step(0.01)
                                             ->columnSpan(2)
+                                            ->suffix(fn ($get) => $get('unit_id') ? '/'.Unit::find($get('unit_id'))?->symbol : null)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $price = (float)$get('price');
+                                                $price = (float) $get('price');
                                                 if ($price > 0 && $state !== null) {
                                                     $salePrice = $price - ($price * ($state / 100));
                                                     $set('sale_price', round($salePrice, 2));
@@ -99,6 +103,11 @@ class ProductForm
                                             ->label('SKU (Stock Keeping Unit)'),
                                         TextInput::make('barcode')
                                             ->label('Barcode (ISBN, UPC, GTIN, etc.)'),
+                                        TextInput::make('stock')
+                                            ->label('Quantity')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->suffix(fn ($get) => $get('unit_id') ? Unit::find($get('unit_id'))?->symbol : null),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),
@@ -114,16 +123,29 @@ class ProductForm
                                             ->required(),
                                     ])
                                     ->columnSpanFull(),
+                                Section::make('Raw Material Unit')
+                                    ->schema([
+                                        Select::make('unit_id')
+                                            ->label('Unit')
+                                            ->helperText('The unit of measurement for this raw material.')
+                                            ->relationship('unit', 'name')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "$record->name ($record->symbol)")
+                                            ->searchable()
+                                            ->preload()
+                                            ->reactive()
+                                            ->required(),
+                                    ])
+                                    ->columnSpanFull(),
                                 Section::make('Associations')
                                     ->schema([
                                         Select::make('brand_id')
                                             ->relationship('brand', 'name')
-                                            ->createOptionForm(fn(Schema $schema) => BrandForm::configure($schema))
+                                            ->createOptionForm(fn (Schema $schema) => BrandForm::configure($schema))
                                             ->searchable()
                                             ->preload(),
                                         Select::make('category_id')
                                             ->relationship('category', 'name')
-                                            ->createOptionForm(fn(Schema $schema) => CategoryForm::configure($schema))
+                                            ->createOptionForm(fn (Schema $schema) => CategoryForm::configure($schema))
                                             ->searchable()
                                             ->preload(),
                                     ])

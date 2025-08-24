@@ -4,12 +4,8 @@ namespace Database\Seeders;
 
 use App\Enums\StoreStatus;
 use App\Enums\UserStatus;
-use App\Models\Category;
-use App\Models\Customer;
-use App\Models\Product;
-use App\Models\Sale;
 use App\Models\Store;
-use App\Models\Supplier;
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -43,6 +39,11 @@ class DatabaseSeeder extends Seeder
             ]);
 
         Artisan::call("shield:super-admin --user=$user->id --tenant=$store->id");
+
+        Unit::factory()->createMany([
+            ['store_id' => $store->id, 'name' => 'Kilogram', 'symbol' => 'kg'],
+            ['store_id' => $store->id, 'name' => 'Liter', 'symbol' => 'l'],
+        ]);
 
         //        Store::factory()
         //            ->hasAttached(User::factory()->count(10))

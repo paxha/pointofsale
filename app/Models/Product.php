@@ -26,6 +26,7 @@ class Product extends Model
         'sale_price',
         'tax_percentage',
         'stock',
+        'unit_id',
         'status',
         'supplier_percentage',
         'tax_amount',
@@ -52,14 +53,19 @@ class Product extends Model
         return $this->belongsTo(Store::class);
     }
 
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function brand(): BelongsTo
+    public function unit(): BelongsTo
     {
-        return $this->belongsTo(Brand::class);
+        return $this->belongsTo(Unit::class);
     }
 
     public function procurements(): BelongsToMany

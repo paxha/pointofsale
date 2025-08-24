@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Procurement;
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class ProcurementPolicy
+class UnitPolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class ProcurementPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_procurements::procurement');
+        return $user->can('view_any_units::unit');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Procurement $procurement): bool
+    public function view(User $user, Unit $unit): bool
     {
-        return $user->can('view_procurements::procurement');
+        return $user->can('view_units::unit');
     }
 
     /**
@@ -31,23 +31,23 @@ class ProcurementPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_procurements::procurement');
+        return $user->can('create_units::unit');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Procurement $procurement): bool
+    public function update(User $user, Unit $unit): bool
     {
-        return $user->can('update_procurements::procurement');
+        return $user->can('update_units::unit');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Procurement $procurement): bool
+    public function delete(User $user, Unit $unit): bool
     {
-        return $user->can('delete_procurements::procurement');
+        return $user->can('delete_units::unit');
     }
 
     /**
@@ -55,15 +55,15 @@ class ProcurementPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_procurements::procurement');
+        return $user->can('delete_any_units::unit');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, Procurement $procurement): bool
+    public function forceDelete(User $user, Unit $unit): bool
     {
-        return $user->can('force_delete_procurements::procurement');
+        return $user->can('force_delete_units::unit');
     }
 
     /**
@@ -71,15 +71,15 @@ class ProcurementPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_procurements::procurement');
+        return $user->can('force_delete_any_units::unit');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, Procurement $procurement): bool
+    public function restore(User $user, Unit $unit): bool
     {
-        return $user->can('restore_procurements::procurement');
+        return $user->can('restore_units::unit');
     }
 
     /**
@@ -87,15 +87,15 @@ class ProcurementPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_procurements::procurement');
+        return $user->can('restore_any_units::unit');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, Procurement $procurement): bool
+    public function replicate(User $user, Unit $unit): bool
     {
-        return $user->can('replicate_procurements::procurement');
+        return $user->can('replicate_units::unit');
     }
 
     /**
@@ -103,6 +103,6 @@ class ProcurementPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_procurements::procurement');
+        return $user->can('reorder_units::unit');
     }
 }

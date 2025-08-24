@@ -89,4 +89,10 @@ class Store extends Model implements HasCurrentTenantLabel
     {
         return $this->hasMany(\App\Models\Brand::class);
     }
+
+    /** @return HasMany<\App\Models\Unit, self> */
+    public function units(): HasMany
+    {
+        return $this->hasMany(\App\Models\Unit::class);
+    }
 }

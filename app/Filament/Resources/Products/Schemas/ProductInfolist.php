@@ -26,13 +26,26 @@ class ProductInfolist
                                     ->columnSpanFull(),
                                 Section::make('Pricing')
                                     ->schema([
-                                        TextEntry::make('price')->money('PKR', decimalPlaces: 0),
-                                        TextEntry::make('sale_price')->money('PKR', decimalPlaces: 0),
-                                        TextEntry::make('sale_percentage')->label('Sale %')->suffix('%'),
-                                        TextEntry::make('tax_percentage')->label('Tax %')->suffix('%'),
-                                        TextEntry::make('tax_amount')->money('PKR', decimalPlaces: 0),
-                                        TextEntry::make('supplier_percentage')->label('Supplier %')->suffix('%'),
-                                        TextEntry::make('supplier_price')->money('PKR', decimalPlaces: 0),
+                                        TextEntry::make('price')
+                                            ->money('PKR')
+                                            ->suffix(fn ($record) => $record->unit ? '/'.$record->unit->symbol : null),
+                                        TextEntry::make('sale_price')
+                                            ->money('PKR')
+                                            ->suffix(fn ($record) => $record->unit ? '/'.$record->unit->symbol : null),
+                                        TextEntry::make('sale_percentage')
+                                            ->label('Sale Percentage')
+                                            ->suffix('%'),
+                                        TextEntry::make('tax_percentage')
+                                            ->label('Tax Percentage')
+                                            ->suffix('%'),
+                                        TextEntry::make('tax_amount')
+                                            ->money('PKR')
+                                            ->suffix(fn ($record) => $record->unit ? '/'.$record->unit->symbol : null),
+                                        TextEntry::make('supplier_percentage')
+                                            ->label('Supplier Percentage')
+                                            ->suffix('%'),
+                                        TextEntry::make('supplier_price')->money('PKR')
+                                            ->suffix(fn ($record) => $record->unit ? '/'.$record->unit->symbol : null),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),
@@ -40,7 +53,9 @@ class ProductInfolist
                                     ->schema([
                                         TextEntry::make('sku')->label('SKU'),
                                         TextEntry::make('barcode')->label('Barcode'),
-                                        TextEntry::make('stock')->label('Quantity'),
+                                        TextEntry::make('stock')
+                                            ->label('Quantity')
+                                            ->suffix(fn ($record) => $record->unit ? $record->unit->symbol : null),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),
@@ -50,6 +65,13 @@ class ProductInfolist
                             Section::make('Status')
                                 ->schema([
                                     TextEntry::make('status')->badge(),
+                                ])
+                                ->columnSpanFull(),
+                            Section::make('Raw Metrial Unit')
+                                ->schema([
+                                    TextEntry::make('unit')
+                                        ->label('Unit')
+                                        ->formatStateUsing(fn ($state) => "$state->name ($state->symbol)"),
                                 ])
                                 ->columnSpanFull(),
                             Section::make('Associations')

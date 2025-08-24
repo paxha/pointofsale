@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Suppliers;
 
-use App\Filament\Resources\Suppliers\RelationManagers\ProcurementsRelationManager;
 use App\Filament\Resources\Suppliers\Pages\CreateSupplier;
 use App\Filament\Resources\Suppliers\Pages\EditSupplier;
 use App\Filament\Resources\Suppliers\Pages\ListSuppliers;
 use App\Filament\Resources\Suppliers\Pages\ViewSupplier;
+use App\Filament\Resources\Suppliers\RelationManagers\ProcurementsRelationManager;
 use App\Filament\Resources\Suppliers\RelationManagers\TransactionsRelationManager;
 use App\Filament\Resources\Suppliers\Schemas\SupplierForm;
 use App\Filament\Resources\Suppliers\Schemas\SupplierInfolist;
@@ -28,11 +28,11 @@ class SupplierResource extends Resource implements HasShieldPermissions
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?string $recordTitleAttribute = 'Supplier';
-
     protected static string|UnitEnum|null $navigationGroup = 'Inventory';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 5;
+
+    protected static ?string $recordTitleAttribute = 'Supplier';
 
     public static function getNavigationBadge(): ?string
     {

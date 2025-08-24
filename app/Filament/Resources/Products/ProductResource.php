@@ -29,9 +29,11 @@ class ProductResource extends Resource implements HasShieldPermissions
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
-    protected static ?string $recordTitleAttribute = 'Product';
-
     protected static string|UnitEnum|null $navigationGroup = 'Inventory';
+
+    protected static ?int $navigationSort = 4;
+
+    protected static ?string $recordTitleAttribute = 'Product';
 
     public static function getNavigationBadge(): ?string
     {

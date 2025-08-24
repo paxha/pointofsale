@@ -28,11 +28,11 @@ class ProcurementResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBoxArrowDown;
 
-    protected static ?string $recordTitleAttribute = 'Procurement';
-
     protected static string|UnitEnum|null $navigationGroup = 'Inventory';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 6;
+
+    protected static ?string $recordTitleAttribute = 'Procurement';
 
     public static function form(Schema $schema): Schema
     {

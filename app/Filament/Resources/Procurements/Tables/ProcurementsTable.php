@@ -63,15 +63,15 @@ class ProcurementsTable
                     ->hiddenLabel(),
                 EditAction::make()
                     ->hiddenLabel()
-                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
                 Action::make('close')
                     ->label('Receive')
                     ->icon(Heroicon::Check)
-                    ->url(fn($record) => route('filament.store.resources.procurements.close', [
+                    ->url(fn ($record) => route('filament.store.resources.procurements.close', [
                         'tenant' => filament()->getTenant(),
                         'record' => $record,
                     ]))
-                    ->visible(fn($record) => $record->status !== ProcurementStatus::Closed),
+                    ->visible(fn ($record) => $record->status !== ProcurementStatus::Closed),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -29,6 +29,8 @@ class CategoryResource extends Resource implements HasShieldPermissions
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventory';
 
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $recordTitleAttribute = 'Category';
 
     public static function form(Schema $schema): Schema
