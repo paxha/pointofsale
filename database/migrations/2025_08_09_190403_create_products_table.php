@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Brand::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(Category::class)->nullable()->constrained()->nullOnDelete();
+            $table->string('code')->nullable();
             $table->string('name')->nullable();
             $table->string('description')->nullable();
             $table->string('sku')->nullable();

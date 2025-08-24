@@ -25,10 +25,12 @@ class ProductForm
                             ->schema([
                                 Section::make()
                                     ->schema([
+                                        TextInput::make('code'),
                                         TextInput::make('name')
                                             ->required(),
                                         TextInput::make('description')
-                                            ->nullable(),
+                                            ->nullable()
+                                            ->columnSpanFull(),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),
@@ -43,14 +45,14 @@ class ProductForm
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $salePercentage = (float) $get('sale_percentage');
+                                                $salePercentage = (float)$get('sale_percentage');
                                                 if ($state > 0 && $salePercentage !== null && $salePercentage !== '') {
                                                     $salePrice = $state - ($state * ($salePercentage / 100));
                                                     $set('sale_price', round($salePrice, 2));
                                                 } elseif ($state > 0) {
                                                     $set('sale_price', null);
                                                 }
-                                                $salePrice = (float) $get('sale_price');
+                                                $salePrice = (float)$get('sale_price');
                                                 if ($state > 0 && $salePrice > 0) {
                                                     $percentage = 100 - (($salePrice / $state) * 100);
                                                     $set('sale_percentage', round($percentage, 2));
@@ -64,7 +66,7 @@ class ProductForm
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $price = (float) $get('price');
+                                                $price = (float)$get('price');
                                                 if ($price > 0 && $state !== null) {
                                                     $percentage = 100 - (($state / $price) * 100);
                                                     $set('sale_percentage', round($percentage, 2));
@@ -80,7 +82,7 @@ class ProductForm
                                             ->columnSpan(2)
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                                $price = (float) $get('price');
+                                                $price = (float)$get('price');
                                                 if ($price > 0 && $state !== null) {
                                                     $salePrice = $price - ($price * ($state / 100));
                                                     $set('sale_price', round($salePrice, 2));
@@ -94,11 +96,9 @@ class ProductForm
                                 Section::make('Inventory')
                                     ->schema([
                                         TextInput::make('sku')
-                                            ->label('SKU (Stock Keeping Unit)')
-                                            ->required(),
+                                            ->label('SKU (Stock Keeping Unit)'),
                                         TextInput::make('barcode')
-                                            ->label('Barcode (ISBN, UPC, GTIN, etc.)')
-                                            ->required(),
+                                            ->label('Barcode (ISBN, UPC, GTIN, etc.)'),
                                     ])
                                     ->columns()
                                     ->columnSpanFull(),
@@ -118,12 +118,12 @@ class ProductForm
                                     ->schema([
                                         Select::make('brand_id')
                                             ->relationship('brand', 'name')
-                                            ->createOptionForm(fn (Schema $schema) => BrandForm::configure($schema))
+                                            ->createOptionForm(fn(Schema $schema) => BrandForm::configure($schema))
                                             ->searchable()
                                             ->preload(),
                                         Select::make('category_id')
                                             ->relationship('category', 'name')
-                                            ->createOptionForm(fn (Schema $schema) => CategoryForm::configure($schema))
+                                            ->createOptionForm(fn(Schema $schema) => CategoryForm::configure($schema))
                                             ->searchable()
                                             ->preload(),
                                     ])
