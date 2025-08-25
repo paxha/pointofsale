@@ -3,7 +3,6 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\EditStoreProfile;
-use App\Filament\Pages\RegisterStore;
 use App\Models\Store;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
@@ -31,9 +30,9 @@ class StorePanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('store')
+            ->brandName($this->getTenantAppName())
             ->tenant(Store::class, slugAttribute: 'slug')
             ->tenantProfile(EditStoreProfile::class)
-            ->tenantRegistration(RegisterStore::class)
             ->login()
             ->colors([
                 'primary' => Color::Blue,
@@ -71,5 +70,24 @@ class StorePanelProvider extends PanelProvider
             ->databaseNotifications()
             ->sidebarCollapsibleOnDesktop()
             ->spa();
+    }
+
+    protected function getTenantAppName(): string
+    {
+        // Use a default name if no tenant is found
+        $appName = 'Store';
+
+        // Check if there is a tenant in the URL or session
+        // This logic will depend on how you set up multi-tenancy (e.g., subdomains, path)
+        $tenant = request()->segment(1); // Get tenant from URL segment
+
+        if ($tenant) {
+            $currentTenant = Store::whereSlug($tenant)->first();
+            if ($currentTenant) {
+                $appName = $currentTenant->name;
+            }
+        }
+
+        return $appName;
     }
 }
