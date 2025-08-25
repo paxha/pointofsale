@@ -246,27 +246,28 @@ class SaleForm
 
         // Subtotal: sum of all (unit_price * quantity * (1 - line discount %))
         $subtotal = array_sum(array_map(static function ($item) {
-            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
+            $quantity = isset($item['quantity']) ? (float)$item['quantity'] : 1;
             $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : 0;
             $discount = isset($item['discount']) ? min(100, max(0, (float)$item['discount'])) : 0;
 
             return $unitPrice * $quantity * (1 - ($discount / 100));
         }, $products));
-        $set($subtotalPath, round($subtotal, 2));
+
+        $set($subtotalPath, number_format($subtotal, 2));
 
         // Total tax: sum of all (tax * quantity)
         $totalTax = array_sum(array_map(static function ($item) {
-            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
+            $quantity = isset($item['quantity']) ? (float)$item['quantity'] : 1;
             $tax = isset($item['tax']) ? (float)$item['tax'] : 0;
 
             return $tax * $quantity;
         }, $products));
-        $set($totalTaxPath, round($totalTax, 2));
+        $set($totalTaxPath, number_format($totalTax, 2));
 
         // Sale-level discount (applied to subtotal after line discounts)
         $discountPercent = min(100, max(0, (float)$get($discountPath)));
         $total = $subtotal * (1 - ($discountPercent / 100));
-        $set($totalPath, round($total, 2));
+        $set($totalPath, number_format($total, 2));
     }
 
     /**
@@ -284,7 +285,7 @@ class SaleForm
     ): void
     {
         $quantity = (float)($get('quantity') ?: 1); // Allow negative, disallow zero via validation
-        $discount = min(100, max(0, (int)($get('discount') ?? 0)));
+        $discount = min(100, max(0, (float)($get('discount') ?? 0)));
 
         $set('quantity', $quantity);
         $set('discount', $discount);
