@@ -108,7 +108,7 @@ class SaleForm
                                             ->width('100px'),
                                         Repeater\TableColumn::make('Product'),
                                         Repeater\TableColumn::make('Qty')
-                                            ->width('130px'),
+                                            ->width('110px'),
                                         Repeater\TableColumn::make('Disc. %')
                                             ->width('100px'),
                                         Repeater\TableColumn::make('Total')
@@ -121,7 +121,6 @@ class SaleForm
                                         TextInput::make('name')
                                             ->disabled(),
                                         TextInput::make('quantity')
-                                            ->numeric()
                                             ->rule('not_in:0')
                                             ->placeholder('Use negative for returns')
                                             ->suffix(fn($get) => $get('unit') ? $get('unit') : null)
@@ -132,7 +131,6 @@ class SaleForm
                                         TextInput::make('discount')
                                             ->minValue(0)
                                             ->maxValue(100)
-                                            ->numeric()
                                             ->live(debounce: 1000)
                                             ->afterStateUpdated(function ($state, $set, $get) {
                                                 SaleForm::recalcLine($get, $set);
@@ -144,26 +142,23 @@ class SaleForm
                                     ->reorderable(false)
                                     ->columnSpanFull(),
                             ])
-                            ->columnSpan(3),
+                            ->columnSpan(6),
                         Grid::make()
                             ->schema([
                                 Section::make()
                                     ->schema([
                                         TextInput::make('subtotal')
-                                            ->numeric()
                                             ->prefix('PKR')
                                             ->inlineLabel()
                                             ->disabled(),
                                         TextInput::make('total_tax')
                                             ->label('Tax')
-                                            ->numeric()
                                             ->prefix('PKR')
                                             ->inlineLabel()
                                             ->disabled(),
                                         TextInput::make('discount')
                                             ->label('Discount')
                                             ->prefix('%')
-                                            ->numeric()
                                             ->minValue(0)
                                             ->maxValue(100)
                                             ->live(debounce: 1000)
@@ -176,7 +171,6 @@ class SaleForm
                                             }),
                                         TextInput::make('total')
                                             ->label('Total')
-                                            ->numeric()
                                             ->prefix('PKR')
                                             ->inlineLabel()
                                             ->disabled(),
@@ -222,9 +216,10 @@ class SaleForm
                                             return redirect()->to(SaleResource::getUrl('create'));
                                         }),
                                 ]),
-                            ]),
+                            ])
+                        ->columnSpan(2),
                     ])
-                    ->columns(4)
+                    ->columns(8)
                     ->columnSpanFull(),
             ]);
     }
