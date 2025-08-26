@@ -88,7 +88,7 @@ class SupplierPaymentStats extends StatsOverviewWidget
 
         // Chart: cumulative pending amount for each day
         $chartDays = collect(range(0, 6))->map(
-            fn($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
+            fn ($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
         );
 
         $chartData = [];
@@ -103,7 +103,7 @@ class SupplierPaymentStats extends StatsOverviewWidget
         }
 
         // Invert the chart for correct visual direction
-        $chartData = array_map(fn($v) => -1 * $v, $chartData);
+        $chartData = array_map(fn ($v) => -1 * $v, $chartData);
 
         return [
             'value' => $pendingAmount,

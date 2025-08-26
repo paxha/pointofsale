@@ -4,6 +4,9 @@ namespace Database\Seeders;
 
 use App\Enums\StoreStatus;
 use App\Enums\UserStatus;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Store;
 use App\Models\Unit;
 use App\Models\User;
@@ -44,6 +47,12 @@ class DatabaseSeeder extends Seeder
             ['store_id' => $store->id, 'name' => 'Kilogram', 'symbol' => 'kg'],
             ['store_id' => $store->id, 'name' => 'Liter', 'symbol' => 'l'],
         ]);
+
+        // Seed brands and categories for the store
+        Brand::factory()->count(10)->create(['store_id' => $store->id]);
+        Category::factory()->count(10)->create(['store_id' => $store->id]);
+
+        Product::factory()->count(200)->create();
 
         //        Store::factory()
         //            ->hasAttached(User::factory()->count(10))

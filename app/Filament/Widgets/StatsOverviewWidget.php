@@ -17,11 +17,11 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 
     protected function getStats(): array
     {
-        $startDate = !is_null($this->pageFilters['startDate'] ?? null)
+        $startDate = ! is_null($this->pageFilters['startDate'] ?? null)
             ? Carbon::parse($this->pageFilters['startDate'])
             : now()->subMonth();
 
-        $endDate = !is_null($this->pageFilters['endDate'] ?? null)
+        $endDate = ! is_null($this->pageFilters['endDate'] ?? null)
             ? Carbon::parse($this->pageFilters['endDate'])
             : now();
 
@@ -29,47 +29,47 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 
         // Revenue stat
         $revenue = Sale::query()
-                ->where('status', SaleStatus::Completed->value)
-                ->whereIn('payment_status', [
-                    SalePaymentStatus::Paid->value,
-                    SalePaymentStatus::Credit->value,
-                ])
-                ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
-                ->sum('total') / 100;
+            ->where('status', SaleStatus::Completed->value)
+            ->whereIn('payment_status', [
+                SalePaymentStatus::Paid->value,
+                SalePaymentStatus::Credit->value,
+            ])
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->sum('total') / 100;
 
         $prevStart = $startDate->copy()->subDays($days);
         $prevEnd = $startDate->copy()->subDay();
 
         $prevRevenue = Sale::query()
-                ->where('status', SaleStatus::Completed->value)
-                ->whereIn('payment_status', [
-                    SalePaymentStatus::Paid->value,
-                    SalePaymentStatus::Credit->value,
-                ])
-                ->whereBetween('created_at', [$prevStart->startOfDay(), $prevEnd->endOfDay()])
-                ->sum('total') / 100;
+            ->where('status', SaleStatus::Completed->value)
+            ->whereIn('payment_status', [
+                SalePaymentStatus::Paid->value,
+                SalePaymentStatus::Credit->value,
+            ])
+            ->whereBetween('created_at', [$prevStart->startOfDay(), $prevEnd->endOfDay()])
+            ->sum('total') / 100;
 
         $absChange = $revenue - $prevRevenue;
         $percentChange = $prevRevenue > 0 ? ($absChange / $prevRevenue) * 100 : 0;
 
         $sparklineDays = collect(range(0, 6))->map(
-            fn($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
+            fn ($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
         );
 
         $sparklineData = $sparklineDays->map(function ($date) {
             return Sale::query()
-                    ->where('status', SaleStatus::Completed->value)
-                    ->whereIn('payment_status', [
-                        SalePaymentStatus::Paid->value,
-                        SalePaymentStatus::Credit->value,
-                    ])
-                    ->whereDate('created_at', $date)
-                    ->sum('total') / 100;
+                ->where('status', SaleStatus::Completed->value)
+                ->whereIn('payment_status', [
+                    SalePaymentStatus::Paid->value,
+                    SalePaymentStatus::Credit->value,
+                ])
+                ->whereDate('created_at', $date)
+                ->sum('total') / 100;
         })->toArray();
 
         $revenueFormatted = $this->formatCompactNumber($revenue);
         $absChangeFormatted = $this->formatCompactNumber($absChange, true);
-        $percentChangeFormatted = number_format(abs($percentChange), 1) . '%';
+        $percentChangeFormatted = number_format(abs($percentChange), 1).'%';
         $isIncrease = $absChange >= 0;
 
         $description = $isIncrease
@@ -90,7 +90,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
             : 0;
 
         $pendingAbsChangeFormatted = $this->formatCompactNumber($pendingAbsChange, true);
-        $pendingPercentChangeFormatted = number_format(abs($pendingPercentChange), 1) . '%';
+        $pendingPercentChangeFormatted = number_format(abs($pendingPercentChange), 1).'%';
 
         $pendingIsIncrease = $pendingAbsChange > 0;
 
@@ -116,7 +116,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
             : 0;
 
         $customerPendingAbsChangeFormatted = $this->formatCompactNumber($customerPendingAbsChange, true);
-        $customerPendingPercentChangeFormatted = number_format(abs($customerPendingPercentChange), 1) . '%';
+        $customerPendingPercentChangeFormatted = number_format(abs($customerPendingPercentChange), 1).'%';
 
         $customerPendingIsIncrease = $customerPendingAbsChange > 0;
 
@@ -131,7 +131,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 ->color($isIncrease ? 'success' : 'danger')
                 ->chart($sparklineData)
                 ->extraAttributes(['title' => "Revenue for {$days} days"])
-                ->extraAttributes(['trend' => ($isIncrease ? '+' : '-') . $percentChangeFormatted]),
+                ->extraAttributes(['trend' => ($isIncrease ? '+' : '-').$percentChangeFormatted]),
 
             BaseStatsOverviewWidget\Stat::make('Supplier Amount', $pendingAmountFormatted)
                 ->description($pendingDescription)
@@ -152,11 +152,12 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         $abs = abs($number);
         $sign = $showSign ? ($number > 0 ? '+' : ($number < 0 ? '-' : '')) : '';
         if ($abs >= 1_000_000) {
-            return $sign . number_format($abs / 1_000_000, 1) . 'M';
+            return $sign.number_format($abs / 1_000_000, 1).'M';
         }
         if ($abs >= 1_000) {
-            return $sign . number_format($abs / 1_000, 1) . 'k';
+            return $sign.number_format($abs / 1_000, 1).'k';
         }
-        return $sign . number_format($abs, 0);
+
+        return $sign.number_format($abs, 0);
     }
 }

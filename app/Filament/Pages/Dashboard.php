@@ -8,7 +8,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
-
 class Dashboard extends BaseDashboard
 {
     use BaseDashboard\Concerns\HasFiltersForm;
@@ -21,11 +20,11 @@ class Dashboard extends BaseDashboard
                     ->components([
                         DatePicker::make('startDate')
                             ->default(now()->subMonth())
-                            ->maxDate(fn(Get $get) => $get('endDate') ?: now()),
+                            ->maxDate(fn (Get $get) => $get('endDate') ?: now()),
 
                         DatePicker::make('endDate')
                             ->default(now())
-                            ->minDate(fn(Get $get) => $get('startDate') ?: now())
+                            ->minDate(fn (Get $get) => $get('startDate') ?: now())
                             ->maxDate(now()),
                     ])
                     ->columns()
