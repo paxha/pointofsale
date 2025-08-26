@@ -68,4 +68,47 @@ class SupplierPaymentStats extends StatsOverviewWidget
                 ->color('success'),
         ];
     }
+
+    public static function getPendingAmountStatForPeriod(Carbon $startDate, Carbon $endDate): array
+    {
+        $latestTransactions = Transaction::query()
+            ->where('transactionable_type', Supplier::class)
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->whereIn('id', function ($query) use ($startDate, $endDate) {
+                $query->selectRaw('MAX(id)')
+                    ->from('transactions')
+                    ->where('transactionable_type', Supplier::class)
+                    ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+                    ->groupBy('transactionable_id');
+            })
+            ->get();
+
+        $pendingAmount = $latestTransactions
+            ->where('amount_balance', '<', 0)
+            ->sum('amount_balance');
+
+        // Chart: cumulative pending amount for each day
+        $chartDays = collect(range(0, 6))->map(
+            fn($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
+        );
+
+        $chartData = [];
+        $cumulative = 0;
+        foreach ($chartDays as $date) {
+            $dayChange = Transaction::query()
+                ->where('transactionable_type', Supplier::class)
+                ->whereDate('created_at', $date)
+                ->sum('amount');
+            $cumulative += $dayChange;
+            $chartData[] = $cumulative;
+        }
+
+        // Invert the chart values
+        $chartData = array_map(fn($v) => -1 * $v, $chartData);
+
+        return [
+            'value' => $pendingAmount,
+            'chart' => $chartData,
+        ];
+    }
 }
