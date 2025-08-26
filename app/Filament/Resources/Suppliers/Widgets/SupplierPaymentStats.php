@@ -71,21 +71,20 @@ class SupplierPaymentStats extends StatsOverviewWidget
 
     public static function getPendingAmountStatForPeriod(Carbon $startDate, Carbon $endDate): array
     {
-        $latestTransactions = Transaction::query()
-            ->where('transactionable_type', Supplier::class)
+        $latestTransactions = \App\Models\Transaction::query()
+            ->where('transactionable_type', \App\Models\Supplier::class)
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->whereIn('id', function ($query) use ($startDate, $endDate) {
                 $query->selectRaw('MAX(id)')
                     ->from('transactions')
-                    ->where('transactionable_type', Supplier::class)
+                    ->where('transactionable_type', \App\Models\Supplier::class)
                     ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
                     ->groupBy('transactionable_id');
             })
             ->get();
 
-        $pendingAmount = $latestTransactions
-            ->where('amount_balance', '<', 0)
-            ->sum('amount_balance');
+        // Stat value: keep the real sign
+        $pendingAmount = $latestTransactions->sum('amount_balance');
 
         // Chart: cumulative pending amount for each day
         $chartDays = collect(range(0, 6))->map(
@@ -95,15 +94,15 @@ class SupplierPaymentStats extends StatsOverviewWidget
         $chartData = [];
         $cumulative = 0;
         foreach ($chartDays as $date) {
-            $dayChange = Transaction::query()
-                ->where('transactionable_type', Supplier::class)
+            $dayChange = \App\Models\Transaction::query()
+                ->where('transactionable_type', \App\Models\Supplier::class)
                 ->whereDate('created_at', $date)
                 ->sum('amount');
             $cumulative += $dayChange;
             $chartData[] = $cumulative;
         }
 
-        // Invert the chart values
+        // Invert the chart for correct visual direction
         $chartData = array_map(fn($v) => -1 * $v, $chartData);
 
         return [
