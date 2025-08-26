@@ -34,7 +34,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         }
 
         $percentSign = $percentChange > 0 ? '+' : ($percentChange < 0 ? '-' : '');
-        $percentChangeFormatted = $percentSign . number_format(abs($percentChange), 1) . '%';
+        $percentChangeFormatted = $percentSign.number_format(abs($percentChange), 1).'%';
 
         $trend = $percentChangeFormatted;
         $changeFormatted = $this->formatCompactNumber($change, true);
@@ -125,7 +125,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         // Always use the original value for sign and formatting
         $sign = '';
         if ($showSign) {
-            if ($number < 0 || (is_float($number) && (string)$number === '-0')) {
+            if ($number < 0 || (is_float($number) && (string) $number === '-0')) {
                 $sign = '-';
             } elseif ($number > 0) {
                 $sign = '+';
@@ -133,11 +133,12 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         }
         $abs = abs($number);
         if ($abs >= 1_000_000) {
-            return $sign . number_format($abs / 1_000_000, 1) . 'M';
+            return $sign.number_format($abs / 1_000_000, 1).'M';
         }
         if ($abs >= 1_000) {
-            return $sign . number_format($abs / 1_000, 1) . 'k';
+            return $sign.number_format($abs / 1_000, 1).'k';
         }
-        return $sign . number_format($abs, 0);
+
+        return $sign.number_format($abs, 0);
     }
 }
