@@ -54,6 +54,10 @@ class DatabaseSeeder extends Seeder
 
         Product::factory()->count(200)->create();
 
+        $this->call([
+            SaleSeeder::class,
+        ]);
+
         //        Store::factory()
         //            ->hasAttached(User::factory()->count(10))
         //            ->count(10)
