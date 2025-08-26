@@ -20,40 +20,32 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
      */
     private function calculateStatData(string $label, float|int $currentValue, float|int $previousValue, array $chart, int $days, ?string $title = null): BaseStatsOverviewWidget\Stat
     {
-        $absChange = $currentValue - $previousValue;
-        $isIncrease = $absChange > 0;
-        $color = $isIncrease ? 'success' : ($absChange < 0 ? 'danger' : 'warning');
-        $icon = $isIncrease ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down';
-        $absChangeFormatted = $this->formatCompactNumber($absChange, true);
-        // Improved percent change logic
-        if ($previousValue == 0 && $currentValue == 0) {
-            $percentChange = 0;
-            $percentChangeFormatted = '0.0%';
-            $trend = '0.0%';
-            $description = 'No change';
-        } elseif ($previousValue == 0 && $currentValue > 0) {
-            $percentChange = INF;
-            $percentChangeFormatted = '∞%';
-            $trend = '+∞%';
-            $description = "{$absChangeFormatted} (∞%) increase";
-        } elseif ($previousValue > 0 && $currentValue == 0) {
-            $percentChange = -100;
-            $percentChangeFormatted = '100.0%';
-            $trend = '-100.0%';
-            $description = "-{$this->formatCompactNumber($previousValue, true)} (100.0%) decrease";
+        $change = $currentValue - $previousValue;
+        $hasIncrease = $change > 0;
+        $hasDecrease = $change < 0;
+        $color = $hasIncrease ? 'success' : ($hasDecrease ? 'danger' : 'warning');
+        $icon = $hasIncrease ? 'heroicon-o-arrow-trending-up' : ($hasDecrease ? 'heroicon-o-arrow-trending-down' : 'heroicon-o-minus');
+
+        // Percent change calculation, safe for zero
+        if ($previousValue == 0) {
+            $percentChange = $currentValue == 0 ? 0 : 100;
         } else {
-            $percentChange = ($absChange / $previousValue) * 100;
-            $percentChangeFormatted = number_format(abs($percentChange), 1).'%';
-            $trend = ($isIncrease ? '+' : ($absChange < 0 ? '-' : '')).$percentChangeFormatted;
-            $description = $isIncrease
-                ? "{$absChangeFormatted} ({$percentChangeFormatted}) increase"
-                : ($absChange < 0
-                    ? "{$absChangeFormatted} ({$percentChangeFormatted}) decrease"
-                    : 'No change');
+            $percentChange = ($change / abs($previousValue)) * 100;
         }
+
+        $percentSign = $percentChange > 0 ? '+' : ($percentChange < 0 ? '-' : '');
+        $percentChangeFormatted = $percentSign . number_format(abs($percentChange), 1) . '%';
+
+        $trend = $percentChangeFormatted;
+        $changeFormatted = $this->formatCompactNumber($change, true);
+        $description = match (true) {
+            $hasIncrease => "{$changeFormatted} ({$percentChangeFormatted}) increase",
+            $hasDecrease => "{$changeFormatted} ({$percentChangeFormatted}) decrease",
+            default => 'No change',
+        };
         $title = $title ?? "$label for {$days} days";
 
-        return BaseStatsOverviewWidget\Stat::make($label, $this->formatCompactNumber($currentValue))
+        return BaseStatsOverviewWidget\Stat::make($label, $this->formatCompactNumber($currentValue, true))
             ->description($description)
             ->descriptionIcon($icon)
             ->color($color)
@@ -130,15 +122,22 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 
     private function formatCompactNumber(int|float $number, bool $showSign = false): string
     {
+        // Always use the original value for sign and formatting
+        $sign = '';
+        if ($showSign) {
+            if ($number < 0 || (is_float($number) && (string)$number === '-0')) {
+                $sign = '-';
+            } elseif ($number > 0) {
+                $sign = '+';
+            }
+        }
         $abs = abs($number);
-        $sign = $showSign ? ($number > 0 ? '+' : ($number < 0 ? '-' : '')) : '';
         if ($abs >= 1_000_000) {
-            return $sign.number_format($abs / 1_000_000, 1).'M';
+            return $sign . number_format($abs / 1_000_000, 1) . 'M';
         }
         if ($abs >= 1_000) {
-            return $sign.number_format($abs / 1_000, 1).'k';
+            return $sign . number_format($abs / 1_000, 1) . 'k';
         }
-
-        return $sign.number_format($abs, 0);
+        return $sign . number_format($abs, 0);
     }
 }
