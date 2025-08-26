@@ -24,8 +24,6 @@ class ProductsTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('description')
-                    ->searchable(),
                 TextColumn::make('sale_price')
                     ->money('PKR', decimalPlaces: 0)
                     ->sortable(),

@@ -142,7 +142,7 @@ class SaleForm
                                     ->reorderable(false)
                                     ->columnSpanFull(),
                             ])
-                            ->columnSpan(6),
+                            ->columnSpan(7),
                         Grid::make()
                             ->schema([
                                 Section::make()
@@ -217,9 +217,9 @@ class SaleForm
                                         }),
                                 ]),
                             ])
-                            ->columnSpan(2),
+                            ->columnSpan(3),
                     ])
-                    ->columns(8)
+                    ->columns(10)
                     ->columnSpanFull(),
             ]);
     }
@@ -333,6 +333,34 @@ class SaleForm
     }
 
     /**
+     * Recalculate subtotal, tax, discount, and total from the sale's products in the database.
+     */
+    private static function recalcSaleFromDb(Sale $sale): array
+    {
+        $products = $sale->products()->withPivot(['quantity', 'unit_price', 'tax', 'discount'])->get();
+        $subtotal = 0;
+        $totalTax = 0;
+        foreach ($products as $product) {
+            $quantity = (float) $product->pivot->quantity;
+            $unitPrice = (float) $product->pivot->unit_price;
+            $discount = min(100, max(0, (float) $product->pivot->discount));
+            $tax = (float) $product->pivot->tax;
+            $subtotal += $unitPrice * $quantity * (1 - ($discount / 100));
+            $totalTax += $tax * $quantity;
+        }
+        // Use sale-level discount if present, otherwise 0
+        $saleDiscount = $sale->discount ?? 0;
+        $total = $subtotal * (1 - ($saleDiscount / 100));
+
+        return [
+            'subtotal' => round($subtotal, 2),
+            'tax' => round($totalTax, 2),
+            'discount' => $saleDiscount,
+            'total' => round($total, 2),
+        ];
+    }
+
+    /**
      * Handle the checkout logic, including sale creation and update.
      */
     public static function handleCheckout($state, $status)
@@ -367,10 +395,6 @@ class SaleForm
                     $sale = Sale::findOrFail($state['sale_id']);
                     $sale->update([
                         'customer_id' => $state['customer_id'] ?? null,
-                        'subtotal' => $state['subtotal'],
-                        'tax' => $state['total_tax'],
-                        'discount' => $state['discount'],
-                        'total' => $state['total'],
                         'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
                         'status' => $status,
                         'paid_at' => $paidAt,
@@ -387,14 +411,13 @@ class SaleForm
                         ];
                     }
                     $sale->products()->sync($syncData);
+                    // Recalculate and update sale summary fields from DB
+                    $recalculated = self::recalcSaleFromDb($sale);
+                    $sale->update($recalculated);
                 } else {
                     // Create new sale
                     $sale = Sale::create([
                         'customer_id' => $state['customer_id'] ?? null,
-                        'subtotal' => $state['subtotal'],
-                        'tax' => $state['total_tax'],
-                        'discount' => $state['discount'],
-                        'total' => $state['total'],
                         'payment_status' => $state['payment_status'] ?? SalePaymentStatus::default(),
                         'status' => $status,
                         'paid_at' => $paidAt,
@@ -408,6 +431,9 @@ class SaleForm
                             'supplier_price' => $product['supplier_price'],
                         ]);
                     }
+                    // Recalculate and update sale summary fields from DB
+                    $recalculated = self::recalcSaleFromDb($sale);
+                    $sale->update($recalculated);
                 }
 
                 return $sale;

@@ -15,17 +15,66 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 {
     use InteractsWithPageFilters;
 
+    /**
+     * Helper to calculate and format stat data in a unified way.
+     */
+    private function calculateStatData(string $label, float|int $currentValue, float|int $previousValue, array $chart, int $days, ?string $title = null): BaseStatsOverviewWidget\Stat
+    {
+        $absChange = $currentValue - $previousValue;
+        $isIncrease = $absChange > 0;
+        $color = $isIncrease ? 'success' : ($absChange < 0 ? 'danger' : 'warning');
+        $icon = $isIncrease ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down';
+        $absChangeFormatted = $this->formatCompactNumber($absChange, true);
+        // Improved percent change logic
+        if ($previousValue == 0 && $currentValue == 0) {
+            $percentChange = 0;
+            $percentChangeFormatted = '0.0%';
+            $trend = '0.0%';
+            $description = 'No change';
+        } elseif ($previousValue == 0 && $currentValue > 0) {
+            $percentChange = INF;
+            $percentChangeFormatted = '∞%';
+            $trend = '+∞%';
+            $description = "{$absChangeFormatted} (∞%) increase";
+        } elseif ($previousValue > 0 && $currentValue == 0) {
+            $percentChange = -100;
+            $percentChangeFormatted = '100.0%';
+            $trend = '-100.0%';
+            $description = "-{$this->formatCompactNumber($previousValue, true)} (100.0%) decrease";
+        } else {
+            $percentChange = ($absChange / $previousValue) * 100;
+            $percentChangeFormatted = number_format(abs($percentChange), 1).'%';
+            $trend = ($isIncrease ? '+' : ($absChange < 0 ? '-' : '')).$percentChangeFormatted;
+            $description = $isIncrease
+                ? "{$absChangeFormatted} ({$percentChangeFormatted}) increase"
+                : ($absChange < 0
+                    ? "{$absChangeFormatted} ({$percentChangeFormatted}) decrease"
+                    : 'No change');
+        }
+        $title = $title ?? "$label for {$days} days";
+
+        return BaseStatsOverviewWidget\Stat::make($label, $this->formatCompactNumber($currentValue))
+            ->description($description)
+            ->descriptionIcon($icon)
+            ->color($color)
+            ->chart($chart)
+            ->extraAttributes([
+                'title' => $title,
+                'trend' => $trend,
+            ]);
+    }
+
     protected function getStats(): array
     {
         $startDate = ! is_null($this->pageFilters['startDate'] ?? null)
             ? Carbon::parse($this->pageFilters['startDate'])
             : now()->subMonth();
-
         $endDate = ! is_null($this->pageFilters['endDate'] ?? null)
             ? Carbon::parse($this->pageFilters['endDate'])
             : now();
-
         $days = $startDate->diffInDays($endDate) + 1;
+        $prevStart = $startDate->copy()->subDays($days);
+        $prevEnd = $startDate->copy()->subDay();
 
         // Revenue stat
         $revenue = Sale::query()
@@ -36,10 +85,6 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
             ])
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->sum('total') / 100;
-
-        $prevStart = $startDate->copy()->subDays($days);
-        $prevEnd = $startDate->copy()->subDay();
-
         $prevRevenue = Sale::query()
             ->where('status', SaleStatus::Completed->value)
             ->whereIn('payment_status', [
@@ -48,14 +93,9 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
             ])
             ->whereBetween('created_at', [$prevStart->startOfDay(), $prevEnd->endOfDay()])
             ->sum('total') / 100;
-
-        $absChange = $revenue - $prevRevenue;
-        $percentChange = $prevRevenue > 0 ? ($absChange / $prevRevenue) * 100 : 0;
-
         $sparklineDays = collect(range(0, 6))->map(
             fn ($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
         );
-
         $sparklineData = $sparklineDays->map(function ($date) {
             return Sale::query()
                 ->where('status', SaleStatus::Completed->value)
@@ -67,83 +107,24 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 ->sum('total') / 100;
         })->toArray();
 
-        $revenueFormatted = $this->formatCompactNumber($revenue);
-        $absChangeFormatted = $this->formatCompactNumber($absChange, true);
-        $percentChangeFormatted = number_format(abs($percentChange), 1).'%';
-        $isIncrease = $absChange >= 0;
-
-        $description = $isIncrease
-            ? "{$absChangeFormatted} ({$percentChangeFormatted}) increase"
-            : "{$absChangeFormatted} ({$percentChangeFormatted}) decrease";
-
-        // Pending Amount stat with chart and trend
+        // Supplier Amount stat
         $pendingStatData = SupplierPaymentStats::getPendingAmountStatForPeriod($startDate, $endDate);
         $pendingAmount = $pendingStatData['value'];
-        $pendingAmountFormatted = $this->formatCompactNumber($pendingAmount, true);
-
+        $pendingChart = $pendingStatData['chart'];
         $prevPendingStatData = SupplierPaymentStats::getPendingAmountStatForPeriod($prevStart, $prevEnd);
         $prevPendingAmount = $prevPendingStatData['value'];
 
-        $pendingAbsChange = $pendingAmount - $prevPendingAmount;
-        $pendingPercentChange = $prevPendingAmount != 0
-            ? ($pendingAbsChange / $prevPendingAmount) * 100
-            : 0;
-
-        $pendingAbsChangeFormatted = $this->formatCompactNumber($pendingAbsChange, true);
-        $pendingPercentChangeFormatted = number_format(abs($pendingPercentChange), 1).'%';
-
-        $pendingIsIncrease = $pendingAbsChange > 0;
-
-        $pendingDescription = $pendingIsIncrease
-            ? "{$pendingAbsChangeFormatted} ({$pendingPercentChangeFormatted}) decrease"
-            : "{$pendingAbsChangeFormatted} ({$pendingPercentChangeFormatted}) increase";
-
+        // Customer Amount stat
         $customerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($startDate, $endDate);
         $customerPendingAmount = $customerPendingStatData['value'];
-        $customerPendingAmountFormatted = $this->formatCompactNumber($customerPendingAmount, true);
-
-        // Customer Amount stat with chart and trend
-        $customerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($startDate, $endDate);
-        $customerPendingAmount = $customerPendingStatData['value'];
-        $customerPendingAmountFormatted = $this->formatCompactNumber($customerPendingAmount, true);
-
+        $customerPendingChart = $customerPendingStatData['chart'];
         $prevCustomerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($prevStart, $prevEnd);
         $prevCustomerPendingAmount = $prevCustomerPendingStatData['value'];
 
-        $customerPendingAbsChange = $customerPendingAmount - $prevCustomerPendingAmount;
-        $customerPendingPercentChange = $prevCustomerPendingAmount != 0
-            ? ($customerPendingAbsChange / $prevCustomerPendingAmount) * 100
-            : 0;
-
-        $customerPendingAbsChangeFormatted = $this->formatCompactNumber($customerPendingAbsChange, true);
-        $customerPendingPercentChangeFormatted = number_format(abs($customerPendingPercentChange), 1).'%';
-
-        $customerPendingIsIncrease = $customerPendingAbsChange > 0;
-
-        $customerPendingDescription = $customerPendingIsIncrease
-            ? "{$customerPendingAbsChangeFormatted} ({$customerPendingPercentChangeFormatted}) increase"
-            : "{$customerPendingAbsChangeFormatted} ({$customerPendingPercentChangeFormatted}) decrease";
-
         return [
-            BaseStatsOverviewWidget\Stat::make('Revenue', $revenueFormatted)
-                ->description($description)
-                ->descriptionIcon($isIncrease ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
-                ->color($isIncrease ? 'success' : 'danger')
-                ->chart($sparklineData)
-                ->extraAttributes(['title' => "Revenue for {$days} days"])
-                ->extraAttributes(['trend' => ($isIncrease ? '+' : '-').$percentChangeFormatted]),
-
-            BaseStatsOverviewWidget\Stat::make('Supplier Amount', $pendingAmountFormatted)
-                ->description($pendingDescription)
-                ->descriptionIcon($pendingAmount < 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
-                ->color($pendingAmount < 0 ? 'success' : 'warning')
-                ->chart($pendingStatData['chart']),
-
-            BaseStatsOverviewWidget\Stat::make('Customer Amount', $customerPendingAmountFormatted)
-                ->description($customerPendingDescription)
-                ->descriptionIcon($customerPendingAmount > 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
-                ->color($customerPendingAmount > 0 ? 'success' : 'warning')
-                ->chart($customerPendingStatData['chart']),
+            $this->calculateStatData('Revenue', $revenue, $prevRevenue, $sparklineData, $days),
+            $this->calculateStatData('Supplier Amount', $pendingAmount, $prevPendingAmount, $pendingChart, $days),
+            $this->calculateStatData('Customer Amount', $customerPendingAmount, $prevCustomerPendingAmount, $customerPendingChart, $days),
         ];
     }
 
