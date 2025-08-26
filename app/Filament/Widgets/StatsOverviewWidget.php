@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\SalePaymentStatus;
 use App\Enums\SaleStatus;
+use App\Filament\Resources\Customers\Widgets\CustomerPaymentStats;
 use App\Filament\Resources\Suppliers\Widgets\SupplierPaymentStats;
 use App\Models\Sale;
 use Carbon\Carbon;
@@ -92,11 +93,36 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         $pendingPercentChangeFormatted = number_format(abs($pendingPercentChange), 1) . '%';
 
         $pendingIsIncrease = $pendingAbsChange > 0;
-        $pendingIsWorse = $pendingAmount < $prevPendingAmount;
 
         $pendingDescription = $pendingIsIncrease
-            ? "{$pendingAbsChangeFormatted} ({$pendingPercentChangeFormatted}) increase"
-            : "{$pendingAbsChangeFormatted} ({$pendingPercentChangeFormatted}) decrease";
+            ? "{$pendingAbsChangeFormatted} ({$pendingPercentChangeFormatted}) decrease"
+            : "{$pendingAbsChangeFormatted} ({$pendingPercentChangeFormatted}) increase";
+
+        $customerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($startDate, $endDate);
+        $customerPendingAmount = $customerPendingStatData['value'];
+        $customerPendingAmountFormatted = $this->formatCompactNumber($customerPendingAmount, true);
+
+        // Customer Amount stat with chart and trend
+        $customerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($startDate, $endDate);
+        $customerPendingAmount = $customerPendingStatData['value'];
+        $customerPendingAmountFormatted = $this->formatCompactNumber($customerPendingAmount, true);
+
+        $prevCustomerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($prevStart, $prevEnd);
+        $prevCustomerPendingAmount = $prevCustomerPendingStatData['value'];
+
+        $customerPendingAbsChange = $customerPendingAmount - $prevCustomerPendingAmount;
+        $customerPendingPercentChange = $prevCustomerPendingAmount != 0
+            ? ($customerPendingAbsChange / $prevCustomerPendingAmount) * 100
+            : 0;
+
+        $customerPendingAbsChangeFormatted = $this->formatCompactNumber($customerPendingAbsChange, true);
+        $customerPendingPercentChangeFormatted = number_format(abs($customerPendingPercentChange), 1) . '%';
+
+        $customerPendingIsIncrease = $customerPendingAbsChange > 0;
+
+        $customerPendingDescription = $customerPendingIsIncrease
+            ? "{$customerPendingAbsChangeFormatted} ({$customerPendingPercentChangeFormatted}) increase"
+            : "{$customerPendingAbsChangeFormatted} ({$customerPendingPercentChangeFormatted}) decrease";
 
         return [
             BaseStatsOverviewWidget\Stat::make('Revenue', $revenueFormatted)
@@ -107,11 +133,17 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
                 ->extraAttributes(['title' => "Revenue for {$days} days"])
                 ->extraAttributes(['trend' => ($isIncrease ? '+' : '-') . $percentChangeFormatted]),
 
-            BaseStatsOverviewWidget\Stat::make('Pending Amount', $pendingAmountFormatted)
+            BaseStatsOverviewWidget\Stat::make('Supplier Amount', $pendingAmountFormatted)
                 ->description($pendingDescription)
                 ->descriptionIcon($pendingAmount < 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
                 ->color($pendingAmount < 0 ? 'success' : 'warning')
                 ->chart($pendingStatData['chart']),
+
+            BaseStatsOverviewWidget\Stat::make('Customer Amount', $customerPendingAmountFormatted)
+                ->description($customerPendingDescription)
+                ->descriptionIcon($customerPendingAmount > 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down')
+                ->color($customerPendingAmount > 0 ? 'success' : 'warning')
+                ->chart($customerPendingStatData['chart']),
         ];
     }
 

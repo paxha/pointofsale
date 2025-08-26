@@ -67,4 +67,28 @@ class CustomerPaymentStats extends StatsOverviewWidget
                 ->color('success'),
         ];
     }
+
+    public static function getPendingAmountStatForPeriod($startDate, $endDate): array
+    {
+        $pendingAmount = Transaction::query()
+                ->where('transactionable_type', Customer::class)
+                ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+                ->sum('amount_balance') / 100;
+
+        $sparklineDays = collect(range(0, 6))->map(
+            fn($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
+        );
+
+        $chart = $sparklineDays->map(function ($date) {
+            return Transaction::query()
+                    ->where('transactionable_type', Customer::class)
+                    ->whereDate('created_at', $date)
+                    ->sum('amount_balance') / 100;
+        })->toArray();
+
+        return [
+            'value' => $pendingAmount,
+            'chart' => $chart,
+        ];
+    }
 }
