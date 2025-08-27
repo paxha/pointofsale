@@ -38,7 +38,9 @@ return new class extends Migration
             $table->integer('unit_price');
             $table->integer('tax')->nullable();
             $table->decimal('discount')->nullable()->comment('Discount in percent');
+            $table->decimal('total')->nullable();
             $table->integer('supplier_price')->nullable();
+            $table->integer('supplier_total')->nullable();
         });
     }
 

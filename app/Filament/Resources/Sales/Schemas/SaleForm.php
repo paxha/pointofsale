@@ -428,7 +428,9 @@ class SaleForm
                             'unit_price' => $product['unit_price'],
                             'tax' => $product['tax'],
                             'discount' => $product['discount'],
+                            'total' => $product['total'],
                             'supplier_price' => $product['supplier_price'],
+                            'supplier_total' => $product['supplier_price'] * $product['quantity'],
                         ]);
                     }
                     // Recalculate and update sale summary fields from DB

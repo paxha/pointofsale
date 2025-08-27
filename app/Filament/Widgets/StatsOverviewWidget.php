@@ -45,7 +45,7 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         };
         $title = $title ?? "$label for {$days} days";
 
-        return BaseStatsOverviewWidget\Stat::make($label, $this->formatCompactNumber($currentValue, true))
+        return BaseStatsOverviewWidget\Stat::make($label, 'PKR '.$this->formatCompactNumber($currentValue, true))
             ->description($description)
             ->descriptionIcon($icon)
             ->color($color)

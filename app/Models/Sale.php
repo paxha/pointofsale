@@ -47,7 +47,7 @@ class Sale extends Model
     {
         return $this->belongsToMany(Product::class)
             ->using(ProductSale::class)
-            ->withPivot('quantity', 'unit_price', 'tax', 'discount', 'supplier_price');
+            ->withPivot('quantity', 'unit_price', 'tax', 'discount', 'total', 'supplier_price', 'supplier_total');
     }
 
     public function customer(): BelongsTo

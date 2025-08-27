@@ -14,7 +14,9 @@ class ProductSale extends Pivot
             'unit_price' => PriceCast::class,
             'tax' => PriceCast::class,
             'discount' => 'float',
+            'total' => PriceCast::class,
             'supplier_price' => PriceCast::class,
+            'supplier_total' => PriceCast::class,
         ];
     }
 
