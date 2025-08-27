@@ -15,9 +15,8 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 {
     use InteractsWithPageFilters;
 
-    /**
-     * Helper to calculate and format stat data in a unified way.
-     */
+    protected int|array|null $columns = 3;
+
     private function calculateStatData(string $label, float|int $currentValue, float|int $previousValue, array $chart, int $days, ?string $title = null): BaseStatsOverviewWidget\Stat
     {
         $change = $currentValue - $previousValue;
@@ -26,7 +25,6 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         $color = $hasIncrease ? 'success' : ($hasDecrease ? 'danger' : 'warning');
         $icon = $hasIncrease ? 'heroicon-o-arrow-trending-up' : ($hasDecrease ? 'heroicon-o-arrow-trending-down' : 'heroicon-o-minus');
 
-        // Percent change calculation, safe for zero
         if ($previousValue == 0) {
             $percentChange = $currentValue == 0 ? 0 : 100;
         } else {
@@ -113,16 +111,41 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
         $prevCustomerPendingStatData = CustomerPaymentStats::getPendingAmountStatForPeriod($prevStart, $prevEnd);
         $prevCustomerPendingAmount = $prevCustomerPendingStatData['value'];
 
+        // Profit stat (current period) - use Eloquent relationships
+        $profit = Sale::query()
+            ->where('status', SaleStatus::Completed->value)
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->with('products')
+            ->get()
+            ->sum(function ($sale) {
+                return $sale->products->sum(function ($product) {
+                    // Assumes pivot fields: total, supplier_total
+                    return ($product->pivot->total ?? 0) - ($product->pivot->supplier_total ?? 0);
+                });
+            });
+
+        // Profit stat (previous period)
+        $prevProfit = Sale::query()
+            ->where('status', SaleStatus::Completed->value)
+            ->whereBetween('created_at', [$prevStart->startOfDay(), $prevEnd->endOfDay()])
+            ->with('products')
+            ->get()
+            ->sum(function ($sale) {
+                return $sale->products->sum(function ($product) {
+                    return ($product->pivot->total ?? 0) - ($product->pivot->supplier_total ?? 0);
+                });
+            });
+
         return [
             $this->calculateStatData('Revenue', $revenue, $prevRevenue, $sparklineData, $days),
             $this->calculateStatData('Supplier Amount', $pendingAmount, $prevPendingAmount, $pendingChart, $days),
             $this->calculateStatData('Customer Amount', $customerPendingAmount, $prevCustomerPendingAmount, $customerPendingChart, $days),
+            $this->calculateStatData('Profit', $profit, $prevProfit, [], $days),
         ];
     }
 
     private function formatCompactNumber(int|float $number, bool $showSign = false): string
     {
-        // Always use the original value for sign and formatting
         $sign = '';
         if ($showSign) {
             if ($number < 0 || (is_float($number) && (string) $number === '-0')) {
