@@ -32,25 +32,25 @@ class CustomerPaymentStats extends StatsOverviewWidget
 
         $totalCustomers = $latestTransactions->count();
 
-        $months = collect(range(0, 5))->map(function ($i) {
-            return Carbon::now()->subMonths($i)->format('Y-m');
-        })->reverse();
+        $months = collect(range(0, 5))->map(fn ($i) => Carbon::now()->subMonths($i)->format('Y-m'))->reverse();
 
-        $pendingAmountChart = $months->map(function ($month) {
-            return Transaction::query()
-                ->where('transactionable_type', Customer::class)
-                ->whereRaw("strftime('%Y-%m', created_at) = ?", [$month])
-                ->where('amount_balance', '>', 0)
+        $transactions = Transaction::query()
+            ->where('transactionable_type', Customer::class)
+            ->where('created_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
+            ->where('amount_balance', '>', 0)
+            ->get();
+
+        $pendingAmountChart = $months->map(function ($month) use ($transactions) {
+            return $transactions
+                ->filter(fn ($transaction) => $transaction->created_at->format('Y-m') === $month)
                 ->sum('amount_balance');
         })->toArray();
 
-        $customersToBeReceivedChart = $months->map(function ($month) {
-            return Transaction::query()
-                ->where('transactionable_type', Customer::class)
-                ->whereRaw("strftime('%Y-%m', created_at) = ?", [$month])
-                ->where('amount_balance', '>', 0)
-                ->distinct('transactionable_id')
-                ->count('transactionable_id');
+        $customersToBeReceivedChart = $months->map(function ($month) use ($transactions) {
+            return $transactions
+                ->filter(fn ($transaction) => $transaction->created_at->format('Y-m') === $month)
+                ->unique('transactionable_id')
+                ->count();
         })->toArray();
 
         return [
@@ -79,10 +79,14 @@ class CustomerPaymentStats extends StatsOverviewWidget
             fn ($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
         );
 
-        $chart = $sparklineDays->map(function ($date) {
-            return Transaction::query()
-                ->where('transactionable_type', Customer::class)
-                ->whereDate('created_at', $date)
+        $transactions = Transaction::query()
+            ->where('transactionable_type', Customer::class)
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->get();
+
+        $chart = $sparklineDays->map(function ($date) use ($transactions) {
+            return $transactions
+                ->filter(fn ($transaction) => $transaction->created_at->toDateString() === $date)
                 ->sum('amount_balance') / 100;
         })->toArray();
 

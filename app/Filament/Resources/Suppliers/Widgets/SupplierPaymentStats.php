@@ -33,25 +33,25 @@ class SupplierPaymentStats extends StatsOverviewWidget
         $totalSuppliers = $latestTransactions->count();
 
         // Chart data for last 6 months
-        $months = collect(range(0, 5))->map(function ($i) {
-            return Carbon::now()->subMonths($i)->format('Y-m');
-        })->reverse();
+        $months = collect(range(0, 5))->map(fn ($i) => Carbon::now()->subMonths($i)->format('Y-m'))->reverse();
 
-        $pendingAmountChart = $months->map(function ($month) {
-            return Transaction::query()
-                ->where('transactionable_type', Supplier::class)
-                ->whereRaw("strftime('%Y-%m', created_at) = ?", [$month])
-                ->where('amount_balance', '<', 0)
+        $transactions = Transaction::query()
+            ->where('transactionable_type', Supplier::class)
+            ->where('created_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
+            ->where('amount_balance', '<', 0)
+            ->get();
+
+        $pendingAmountChart = $months->map(function ($month) use ($transactions) {
+            return $transactions
+                ->filter(fn ($transaction) => $transaction->created_at->format('Y-m') === $month)
                 ->sum('amount_balance');
         })->toArray();
 
-        $suppliersToBePaidChart = $months->map(function ($month) {
-            return Transaction::query()
-                ->where('transactionable_type', Supplier::class)
-                ->whereRaw("strftime('%Y-%m', created_at) = ?", [$month])
-                ->where('amount_balance', '<', 0)
-                ->distinct('transactionable_id')
-                ->count('transactionable_id');
+        $suppliersToBePaidChart = $months->map(function ($month) use ($transactions) {
+            return $transactions
+                ->filter(fn ($transaction) => $transaction->created_at->format('Y-m') === $month)
+                ->unique('transactionable_id')
+                ->count();
         })->toArray();
 
         return [
@@ -71,36 +71,34 @@ class SupplierPaymentStats extends StatsOverviewWidget
 
     public static function getPendingAmountStatForPeriod(Carbon $startDate, Carbon $endDate): array
     {
-        $latestTransactions = \App\Models\Transaction::query()
-            ->where('transactionable_type', \App\Models\Supplier::class)
+        $latestTransactions = Transaction::query()
+            ->where('transactionable_type', Supplier::class)
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->whereIn('id', function ($query) use ($startDate, $endDate) {
                 $query->selectRaw('MAX(id)')
                     ->from('transactions')
-                    ->where('transactionable_type', \App\Models\Supplier::class)
+                    ->where('transactionable_type', Supplier::class)
                     ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
                     ->groupBy('transactionable_id');
             })
             ->get();
 
-        // Stat value: keep the real sign
         $pendingAmount = $latestTransactions->sum('amount_balance');
 
-        // Chart: cumulative pending amount for each day
         $chartDays = collect(range(0, 6))->map(
             fn ($i) => $endDate->copy()->subDays(6 - $i)->toDateString()
         );
 
-        $chartData = [];
-        $cumulative = 0;
-        foreach ($chartDays as $date) {
-            $dayChange = \App\Models\Transaction::query()
-                ->where('transactionable_type', \App\Models\Supplier::class)
-                ->whereDate('created_at', $date)
+        $transactions = Transaction::query()
+            ->where('transactionable_type', Supplier::class)
+            ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->get();
+
+        $chartData = $chartDays->map(function ($date) use ($transactions) {
+            return $transactions
+                ->filter(fn ($transaction) => $transaction->created_at->toDateString() === $date)
                 ->sum('amount');
-            $cumulative += $dayChange;
-            $chartData[] = $cumulative;
-        }
+        })->toArray();
 
         // Invert the chart for correct visual direction
         $chartData = array_map(fn ($v) => -1 * $v, $chartData);

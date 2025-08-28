@@ -17,6 +17,8 @@ class StatsOverviewWidget extends BaseStatsOverviewWidget
 
     protected static ?int $sort = -1;
 
+    protected int|array|null $columns = 2;
+
     private function calculateStatData(string $label, float|int $currentValue, float|int $previousValue, array $chart, int $days, ?string $title = null): BaseStatsOverviewWidget\Stat
     {
         $change = $currentValue - $previousValue;

@@ -32,14 +32,11 @@ class ListSales extends ListRecords
         return [
             null => Tab::make('All'),
             'today' => Tab::make('Today\'s Sales')
-                ->query(fn (Builder $query) => $query->whereDate('created_at', today()))
-                ->badge(fn (Builder $query) => $query->whereDate('created_at', today())->count()),
+                ->query(fn (Builder $query) => $query->whereDate('created_at', today())),
             'this_month' => Tab::make('This Month\'s Sales')
-                ->query(fn (Builder $query) => $query->whereMonth('created_at', now()->month))
-                ->badge(fn (Builder $query) => $query->whereMonth('created_at', now()->month)->count()),
+                ->query(fn (Builder $query) => $query->whereMonth('created_at', now()->month)),
             'this_year' => Tab::make('This Year\'s Sales')
-                ->query(fn (Builder $query) => $query->whereYear('created_at', now()->year))
-                ->badge(fn (Builder $query) => $query->whereYear('created_at', now()->year)->count()),
+                ->query(fn (Builder $query) => $query->whereYear('created_at', now()->year)),
         ];
     }
 }
