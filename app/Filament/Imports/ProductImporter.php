@@ -3,12 +3,15 @@
 namespace App\Filament\Imports;
 
 use App\Enums\ProductStatus;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Unit;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Number;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -19,7 +22,7 @@ class ProductImporter extends Importer
 
     public static function getColumns(): array
     {
-        $statusValues = array_map(fn ($c) => $c->value, ProductStatus::cases());
+        $statusValues = array_map(fn($c) => $c->value, ProductStatus::cases());
 
         return [
             ImportColumn::make('category')
@@ -38,7 +41,7 @@ class ProductImporter extends Importer
                         ]);
                     }
 
-                    $name = trim((string) $state);
+                    $name = trim((string)$state);
 
                     $category = Category::query()
                         ->where('store_id', $storeId)
@@ -56,6 +59,44 @@ class ProductImporter extends Importer
 
                     return $category;
                 }),
+
+            ImportColumn::make('brand')
+                ->label('Brand')
+                ->helperText('Brand name. If not found in this store, it will be created automatically.')
+                ->example('Coca-Cola')
+                ->relationship(resolveUsing: function (?string $state, array $options): ?Brand {
+                    if (blank($state)) {
+                        return null;
+                    }
+
+                    $storeId = $options['store_id'] ?? Filament::getTenant()?->getKey();
+                    if (blank($storeId)) {
+                        throw ValidationException::withMessages([
+                            'brand' => 'Cannot resolve store for this import job. Please start the import from within a store context.',
+                        ]);
+                    }
+
+                    $name = trim((string)$state);
+
+                    $brand = Brand::query()
+                        ->where('store_id', $storeId)
+                        ->where('name', $name)
+                        ->first();
+
+                    if ($brand) {
+                        return $brand;
+                    }
+
+                    $brand = new Brand(['name' => $name]);
+                    $brand->store_id = $storeId;
+                    $brand->save();
+
+                    return $brand;
+                }),
+
+            ImportColumn::make('code')
+                ->helperText('Product code. Optional.')
+                ->example('COKE-330'),
 
             ImportColumn::make('name')
                 ->helperText('Product display name.')
@@ -77,68 +118,90 @@ class ProductImporter extends Importer
             ImportColumn::make('price')
                 ->label('Price')
                 ->numeric(decimalPlaces: 2)
-                ->castStateUsing(function (float|string|null $state): ?float {
-                    if (blank($state)) {
-                        return null;
-                    }
-
-                    $state = preg_replace('/[^0-9.]/', '', (string) $state);
-
-                    return round((float) $state, 2);
-                })
                 ->helperText('Standard price in your currency. Use decimals, e.g., 199.99')
                 ->example('199.99'),
 
             ImportColumn::make('sale_price')
                 ->label('Sale Price')
                 ->numeric(decimalPlaces: 2)
-                ->castStateUsing(function (float|string|null $state): ?float {
-                    if (blank($state)) {
-                        return null;
-                    }
-
-                    $state = preg_replace('/[^0-9.]/', '', (string) $state);
-
-                    return round((float) $state, 2);
-                })
                 ->helperText('Discounted price. Leave empty if not on sale.')
                 ->example('149.50'),
 
             ImportColumn::make('tax_percentage')
                 ->label('Tax %')
-                ->integer()
-                ->rules(['integer', 'between:0,100'])
+                ->numeric(decimalPlaces: 2)
                 ->helperText('Tax rate percentage. Example: 17 for 17%.')
                 ->example('17'),
 
-            ImportColumn::make('cost_price')
-                ->label('Cost Price')
+            ImportColumn::make('supplier_percentage')
+                ->label('Supplier %')
                 ->numeric(decimalPlaces: 2)
-                ->castStateUsing(function (float|string|null $state): ?float {
+                ->helperText('Supplier discount percentage. Optional.')
+                ->example('5.0'),
+
+            ImportColumn::make('unit')
+                ->label('Unit')
+                ->helperText('Unit name. If not found in this store, it will be created automatically.')
+                ->example('Piece')
+                ->relationship(resolveUsing: function (?string $state, array $options): ?Unit {
                     if (blank($state)) {
                         return null;
                     }
 
-                    $state = preg_replace('/[^0-9.]/', '', (string) $state);
+                    $storeId = $options['store_id'] ?? \Filament\Facades\Filament::getTenant()?->getKey();
+                    if (blank($storeId)) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'unit' => 'Cannot resolve store for this import job. Please start the import from within a store context.',
+                        ]);
+                    }
 
-                    return round((float) $state, 2);
-                })
-                ->helperText("Supplier's price. Not visible to customers.")
-                ->example('120.00'),
+                    $name = trim((string) $state);
 
-            ImportColumn::make('stock')
-                ->requiredMapping()
-                ->integer()
-                ->rules(['required', 'integer', 'min:0'])
-                ->helperText('Current stock on hand. Non-negative integer.')
-                ->example('24'),
+                    $unit = Unit::query()
+                        ->where('store_id', $storeId)
+                        ->where('name', $name)
+                        ->first();
+
+                    if ($unit) {
+                        return $unit;
+                    }
+
+                    $unit = new Unit([
+                        'name' => $name,
+                        'symbol' => $name,
+                    ]);
+                    $unit->store_id = $storeId;
+                    $unit->save();
+
+                    return $unit;
+                }),
 
             ImportColumn::make('status')
-                ->requiredMapping()
-                ->helperText('One of: '.implode(', ', $statusValues).'.')
+                ->helperText('One of: ' . implode(', ', $statusValues) . '.')
                 ->example('active')
                 ->rules(['required', Rule::in($statusValues)]),
         ];
+    }
+
+    public function fillRecord(): void
+    {
+        parent::fillRecord();
+
+        $record = $this->record;
+
+        $price = $record->price;
+        $salePrice = $record->sale_price;
+        $taxPercentage = $record->tax_percentage;
+
+        // Auto-calculate sale_percentage if not set
+        if (is_null($record->sale_percentage) && !is_null($price) && !is_null($salePrice) && $price > 0) {
+            $record->sale_percentage = round((($price - $salePrice) / $price) * 100, 2);
+        }
+
+        // Auto-calculate tax_amount if not set
+        if (is_null($record->tax_amount) && !is_null($price) && !is_null($taxPercentage)) {
+            $record->tax_amount = round($price * ($taxPercentage / 100), 2);
+        }
     }
 
     public function resolveRecord(): Product
@@ -162,14 +225,14 @@ class ProductImporter extends Importer
                 ->first();
         }
 
-        if (! $record && filled($barcode)) {
+        if (!$record && filled($barcode)) {
             $record = Product::query()
                 ->where('store_id', $storeId)
                 ->where('barcode', $barcode)
                 ->first();
         }
 
-        if (! $record) {
+        if (!$record) {
             $record = new Product;
         }
 
@@ -181,10 +244,10 @@ class ProductImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = 'Your product import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
+        $body = 'Your product import has completed and ' . Number::format($import->successful_rows) . ' ' . str('row')->plural($import->successful_rows) . ' imported.';
 
         if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
+            $body .= ' ' . Number::format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to import.';
         }
 
         return $body;

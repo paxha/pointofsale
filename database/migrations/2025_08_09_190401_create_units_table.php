@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Store::class)->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('symbol');
+            $table->string('symbol')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
