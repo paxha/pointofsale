@@ -22,9 +22,9 @@ class SalesChart extends ChartWidget
         $salesPerMonth = Sale::query()
             ->where('status', SaleStatus::Completed->value)
             ->whereYear('created_at', $year)
-            ->selectRaw("strftime('%m', created_at) as month, SUM(total) as total")
-            ->groupByRaw("strftime('%m', created_at)")
-            ->pluck('total', 'month');
+            ->get()
+            ->groupBy(fn ($sale) => $sale->created_at->format('m'))
+            ->map(fn ($sales) => $sales->sum('total'));
 
         // Profit per month
         $profitPerMonth = Sale::query()
