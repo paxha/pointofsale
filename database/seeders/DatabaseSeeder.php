@@ -49,10 +49,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Seed brands and categories for the store
-//        Brand::factory()->count(10)->for($store)->create();
-//        Category::factory()->count(10)->for($store)->create();
+        //        Brand::factory()->count(10)->for($store)->create();
+        //        Category::factory()->count(10)->for($store)->create();
 
-//        Product::factory()->count(200)->create();
+        //        Product::factory()->count(200)->create();
 
         //        $this->call([
         //            SaleSeeder::class,

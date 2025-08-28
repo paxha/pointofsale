@@ -27,13 +27,13 @@ class LatestTransactions extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn(): Builder => Transaction::query()->whereIn('transactionable_type', [Supplier::class, Customer::class])->latest()->take(10))
+            ->query(fn (): Builder => Transaction::query()->whereIn('transactionable_type', [Supplier::class, Customer::class])->latest()->take(10))
             ->columns([
                 TextColumn::make('transactionable')
                     ->label('Transaction')
-                    ->description(fn($record) => class_basename($record->transactionable_type), 'above')
+                    ->description(fn ($record) => class_basename($record->transactionable_type), 'above')
                     ->color('primary')
-                    ->formatStateUsing(fn($record) => $record->referenceable?->id)
+                    ->formatStateUsing(fn ($record) => $record->referenceable?->id)
                     ->url(function ($record) {
                         if ($record->transactionable_type === Supplier::class && $record->transactionable) {
                             return SupplierResource::getUrl('view', ['record' => $record->transactionable]);
@@ -45,9 +45,9 @@ class LatestTransactions extends TableWidget
                     }),
                 TextColumn::make('referenceable')
                     ->label('Reference')
-                    ->description(fn($record) => class_basename($record->referenceable_type), 'above')
+                    ->description(fn ($record) => class_basename($record->referenceable_type), 'above')
                     ->color('primary')
-                    ->formatStateUsing(fn($record) => $record->referenceable?->reference ?? $record->referenceable?->id)
+                    ->formatStateUsing(fn ($record) => $record->referenceable?->reference ?? $record->referenceable?->id)
                     ->url(function ($record) {
                         if ($record->referenceable_type === Procurement::class && $record->referenceable) {
                             return ProcurementResource::getUrl('view', ['record' => $record->referenceable]);
@@ -65,9 +65,9 @@ class LatestTransactions extends TableWidget
                 TextColumn::make('amount')
                     ->label('Amount')
                     ->money('PKR')
-                    ->icon(fn($record) => $record->amount > 0 ? Heroicon::OutlinedArrowUp : Heroicon::OutlinedArrowDown)
-                    ->iconColor(fn($record) => ($record->type === 'customer_credit' || $record->type === 'supplier_debit') ? 'success' : 'danger')
-                    ->color(fn($record) => ($record->type === 'customer_credit' || $record->type === 'supplier_debit') ? 'success' : 'danger'),
+                    ->icon(fn ($record) => $record->amount > 0 ? Heroicon::OutlinedArrowUp : Heroicon::OutlinedArrowDown)
+                    ->iconColor(fn ($record) => ($record->type === 'customer_credit' || $record->type === 'supplier_debit') ? 'success' : 'danger')
+                    ->color(fn ($record) => ($record->type === 'customer_credit' || $record->type === 'supplier_debit') ? 'success' : 'danger'),
                 TextColumn::make('amount_balance')
                     ->label('Balance')
                     ->money('PKR'),

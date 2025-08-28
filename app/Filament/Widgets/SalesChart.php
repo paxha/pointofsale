@@ -58,16 +58,19 @@ class SalesChart extends ChartWidget
 
         $salesData = $months->map(function ($label, $i) use ($salesPerMonth) {
             $monthKey = str_pad($i + 1, 2, '0', STR_PAD_LEFT);
+
             return round(($salesPerMonth[$monthKey] ?? 0), 2);
         })->toArray();
 
         $profitData = $months->map(function ($label, $i) use ($profitPerMonth) {
             $monthKey = str_pad($i + 1, 2, '0', STR_PAD_LEFT);
+
             return round(($profitPerMonth[$monthKey] ?? 0), 2);
         })->toArray();
 
         $supplierPriceData = $months->map(function ($label, $i) use ($supplierPricePerMonth) {
             $monthKey = str_pad($i + 1, 2, '0', STR_PAD_LEFT);
+
             return round(($supplierPricePerMonth[$monthKey] ?? 0), 2);
         })->toArray();
 
